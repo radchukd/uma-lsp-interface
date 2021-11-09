@@ -9,7 +9,7 @@
 
 ## Links
 
-- [Hosted app](https://vercel.app)
+- [Hosted app](https://uma-lsp-interface.vercel.app)
 
 - [UMA](https://umaproject.org)
 
