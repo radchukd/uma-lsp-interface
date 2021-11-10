@@ -105,18 +105,22 @@ export const AppProvider: React.FC = ({ children }) => {
           if (!wallet.provider) return;
 
           const w3 = new Web3(wallet.provider);
-          const ua = (await w3.eth.getAccounts())[0];
-          const cid = await w3.eth.net.getId();
-          const s = new SuperfluidSDK.Framework({
-            web3: w3,
-            additionalContracts: ["UUPSProxiable"],
-          });
-          await s.initialize();
-
           setWeb3(w3);
+
+          const ua = (await w3.eth.getAccounts())[0];
           setUserAddress(ua);
+
+          const cid = await w3.eth.net.getId();
           setChainId(cid);
-          setSf(s);
+
+          if (cid !== 1) {
+            const s = new SuperfluidSDK.Framework({
+              web3: w3,
+              additionalContracts: ["UUPSProxiable"],
+            });
+            await s.initialize();
+            setSf(s);
+          }
 
           if (wallet.name) {
             localStorage.setItem("lastWallet", wallet.name);

@@ -8,11 +8,21 @@ import {
   Typography,
 } from "@mui/material";
 
+import { AppContext } from "../../contexts/AppContext";
 import DistributeForm from "./DistributeForm";
 import MintLSPPairForm from "./MintLSPPairForm";
 import MintSuperLSPForm from "./MintSuperLSPForm";
 
 const DistributeTab: React.FC = () => {
+  const { chainId } = React.useContext(AppContext);
+
+  if (chainId === 1)
+    return (
+      <Typography>
+        Distribution is not supported on Ethereum mainnet.
+      </Typography>
+    );
+
   return (
     <React.Fragment>
       <Accordion>
