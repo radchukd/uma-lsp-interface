@@ -30,59 +30,63 @@ const Header: React.FC = () => {
 
   return (
     <React.Fragment>
-      {!userAddress || !chainId ? (
-        <Box display="flex" justifyContent="center">
-          <Button variant="contained" onClick={() => connectWallet()}>
-            Connect wallet
-          </Button>
-        </Box>
-      ) : (
-        <Box display="flex" alignItems="center" justifyContent="space-between">
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        {userAddress ? (
           <Typography>{truncateAddress(userAddress)}</Typography>
-          <Box>
-            <IconButton
-              sx={{ mr: 1 }}
-              onClick={colorMode.toggleColorMode}
-              color="inherit"
-            >
-              {theme.palette.mode === "dark" ? (
-                <Brightness7Icon />
-              ) : (
-                <Brightness4Icon />
-              )}
-            </IconButton>
-            {!chains.some((c) => c.id === chainId) ? (
-              <Tooltip
-                title={`Supported networks: ${chains
-                  .map((chain) => chain.name)
-                  .toString()}`}
-              >
-                <Button variant="contained" onClick={() => changeChain(1)}>
-                  Unsupported network
-                </Button>
-              </Tooltip>
-            ) : (
-              <FormControl>
-                <InputLabel id="chain-select-label">Chain</InputLabel>
-                <Select
-                  labelId="chain-select-label"
-                  id="chain-select"
-                  size="small"
-                  value={chainId}
-                  label="Chain"
-                  onChange={(e) => changeChain(Number(e.target.value))}
-                >
-                  {chains.map((chain) => (
-                    <MenuItem dense key={chain.id} value={chain.id}>
-                      {chain.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
+        ) : (
+          <Box display="flex" justifyContent="center">
+            <Button variant="contained" onClick={() => connectWallet()}>
+              Connect wallet
+            </Button>
           </Box>
+        )}
+        <Box>
+          <IconButton
+            sx={{ mr: 1 }}
+            onClick={colorMode.toggleColorMode}
+            color="inherit"
+          >
+            {theme.palette.mode === "dark" ? (
+              <Brightness7Icon />
+            ) : (
+              <Brightness4Icon />
+            )}
+          </IconButton>
+          {userAddress && chainId && (
+            <React.Fragment>
+              {!chains.some((c) => c.id === chainId) ? (
+                <Tooltip
+                  title={`Supported networks: ${chains
+                    .map((chain) => chain.name)
+                    .toString()}`}
+                >
+                  <Button variant="contained" onClick={() => changeChain(1)}>
+                    Unsupported network
+                  </Button>
+                </Tooltip>
+              ) : (
+                <FormControl>
+                  <InputLabel id="chain-select-label">Chain</InputLabel>
+                  <Select
+                    labelId="chain-select-label"
+                    id="chain-select"
+                    size="small"
+                    value={chainId}
+                    label="Chain"
+                    onChange={(e) => changeChain(Number(e.target.value))}
+                  >
+                    {chains.map((chain) => (
+                      <MenuItem dense key={chain.id} value={chain.id}>
+                        {chain.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            </React.Fragment>
+          )}
         </Box>
-      )}
+      </Box>
       <Divider sx={{ my: 1 }} />
       <Box>
         <Typography variant="h4" sx={{ mb: 1 }}>

@@ -6,6 +6,7 @@
 - Supported LSP tokens: [Range](https://docs.umaproject.org/range-tokens/summary), [Success](https://docs.umaproject.org/success-tokens/summary).
 - Supported Networks: Mainnet, Kovan, Polygon, Mumbai.
 - Selection of collateral tokens is supported only for Mainnet and Polygon.
+- Distribution is not supported on Mainnet.
 
 ## Links
 
