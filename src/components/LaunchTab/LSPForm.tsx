@@ -94,7 +94,7 @@ const lspFields: Array<FormField<LSPOptions>> = [
     rules: {
       required: true,
     },
-    options: collateralTokens.map((ct) => ct.currency),
+    options: [],
   },
   {
     name: "customAncillaryData",
@@ -223,6 +223,18 @@ const LSPForm: React.FC<ILSPForm> = ({
             const label = `${camelToSentenceCase(lspField.name)} ${
               lspField.rules.required ? "*" : ""
             }`;
+
+            if (lspField.name === "collateralToken") {
+              lspField.options = collateralTokens
+                .filter((token) =>
+                  token.addresses.some(
+                    (address) =>
+                      (chainId === 1 && address.includes("etherscan")) ||
+                      (chainId === 137 && address.includes("polygonscan")),
+                  ),
+                )
+                .map((token) => token.currency);
+            }
 
             return (
               <Grid key={lspField.name} item xs={12} md={6}>
