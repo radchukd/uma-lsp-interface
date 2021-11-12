@@ -1,7 +1,5 @@
 import React from "react";
 
-import { Box } from "@mui/material";
-
 import { FPLOptions, LaunchOptions, LSPOptions } from "../../helpers/models";
 import FPLForm from "./FPLForm";
 import LSPForm from "./LSPForm";
@@ -46,7 +44,7 @@ const LaunchTab: React.FC = () => {
   };
 
   return (
-    <Box>
+    <React.Fragment>
       {activeStep === 0 ? (
         <LSPForm
           lspOptions={formOptions.lspOptions}
@@ -60,7 +58,7 @@ const LaunchTab: React.FC = () => {
           handleBack={handleBack}
         />
       )}
-    </Box>
+    </React.Fragment>
   );
 };
 

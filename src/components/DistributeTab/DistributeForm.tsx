@@ -2,14 +2,7 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
-import {
-  Backdrop,
-  Box,
-  Button,
-  CircularProgress,
-  Grid,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 
 import { AppContext } from "../../contexts/AppContext";
 import { DistributeOptions, FormField } from "../../helpers/models";
@@ -45,8 +38,7 @@ const flowFields: Array<FormField<DistributeOptions>> = [
 
 const DistributeForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { sf, userAddress } = React.useContext(AppContext);
-  const [isLoading, setLoading] = React.useState(false);
+  const { sf, userAddress, handleLoading } = React.useContext(AppContext);
   const { control, handleSubmit } = useForm<{}>();
 
   const onSubmit: SubmitHandler<DistributeOptions> = async ({
@@ -57,7 +49,7 @@ const DistributeForm: React.FC = () => {
     if (!sf || !userAddress) return;
 
     try {
-      setLoading(true);
+      handleLoading(true);
 
       await sf
         .user({ address: userAddress, token })
@@ -79,19 +71,12 @@ const DistributeForm: React.FC = () => {
         autoHideDuration: 2500,
       });
     } finally {
-      setLoading(false);
+      handleLoading(false);
     }
   };
 
   return (
     <React.Fragment>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress />
-      </Backdrop>
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mt: 1, mb: 1 }}>
           <Typography variant="h6">

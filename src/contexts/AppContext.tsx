@@ -12,8 +12,9 @@ type AppContextType = {
   userAddress: string | null;
   chainId: number | null;
   sf: SuperfluidSDK.Framework | null;
-  changeChain: (_: number) => Promise<void>;
+  handleLoading: (_: boolean) => void;
   connectWallet: () => Promise<void>;
+  changeChain: (_: number) => Promise<void>;
 };
 
 export const AppContext = React.createContext({} as AppContextType);
@@ -29,6 +30,10 @@ export const AppProvider: React.FC = ({ children }) => {
   const [userAddress, setUserAddress] = React.useState<string | null>(null);
   const [chainId, setChainId] = React.useState<number | null>(null);
   const [sf, setSf] = React.useState<SuperfluidSDK.Framework | null>(null);
+
+  const handleLoading = (value: boolean) => {
+    setLoading(value);
+  };
 
   const connectWallet = async () => {
     if (!isLoading) setLoading(true);
@@ -158,8 +163,9 @@ export const AppProvider: React.FC = ({ children }) => {
         userAddress,
         chainId,
         sf,
-        changeChain,
+        handleLoading,
         connectWallet,
+        changeChain,
       }}
     >
       {children}

@@ -3,9 +3,7 @@ import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 import {
-  Backdrop,
   Button,
-  CircularProgress,
   FormControl,
   Grid,
   InputLabel,
@@ -108,8 +106,7 @@ const FPLForm: React.FC<IFPLForm> = ({
   handleBack,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const { web3 } = React.useContext(AppContext);
-  const [isLoading, setLoading] = React.useState(false);
+  const { web3, handleLoading } = React.useContext(AppContext);
   const { control, handleSubmit, watch } = useForm<
     FPLOptions & { gasPrice: number }
   >({
@@ -135,7 +132,7 @@ const FPLForm: React.FC<IFPLForm> = ({
     if (!web3) return;
 
     try {
-      setLoading(true);
+      handleLoading(true);
 
       const launchData = await launchLSP({ web3, simulate, ...formOptions });
 
@@ -159,7 +156,7 @@ const FPLForm: React.FC<IFPLForm> = ({
         autoHideDuration: 2500,
       });
     } finally {
-      setLoading(false);
+      handleLoading(false);
     }
   };
 
@@ -196,12 +193,6 @@ const FPLForm: React.FC<IFPLForm> = ({
 
   return (
     <React.Fragment>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress />
-      </Backdrop>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
           FPL parameters

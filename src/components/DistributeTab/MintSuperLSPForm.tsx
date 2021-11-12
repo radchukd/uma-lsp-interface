@@ -3,10 +3,8 @@ import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 import {
-  Backdrop,
   Box,
   Button,
-  CircularProgress,
   FormControl,
   Grid,
   InputLabel,
@@ -82,8 +80,7 @@ const mintFields: Array<FormField<MintSuperLSPFormOptions>> = [
 
 const MintSuperLSPForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { web3, sf } = React.useContext(AppContext);
-  const [isLoading, setLoading] = React.useState(true);
+  const { isLoading, web3, sf, handleLoading } = React.useContext(AppContext);
   const [createdLSPs, setCreatedLSPs] = React.useState<Array<CreatedLSP>>([]);
   const { control, handleSubmit } = useForm<MintSuperLSPFormOptions>();
 
@@ -93,7 +90,8 @@ const MintSuperLSPForm: React.FC = () => {
   }, [web3]);
 
   React.useEffect(() => {
-    if (createdLSPs.length) setLoading(false);
+    if (createdLSPs.length) handleLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createdLSPs]);
 
   const onSubmit: SubmitHandler<MintSuperLSPFormOptions> = async ({
@@ -105,7 +103,7 @@ const MintSuperLSPForm: React.FC = () => {
     if (!web3 || !sf) return;
 
     try {
-      setLoading(true);
+      handleLoading(true);
 
       const lspCreated = createdLSPs.find(
         (lsp) => lsp.longShortPair === lspAddress,
@@ -137,18 +135,12 @@ const MintSuperLSPForm: React.FC = () => {
         autoHideDuration: 2500,
       });
     } finally {
-      setLoading(false);
+      handleLoading(false);
     }
   };
 
   return (
     <React.Fragment>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress />
-      </Backdrop>
       {!isLoading && !createdLSPs.length ? (
         <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
           You haven't launched any LSP tokens yet.{" "}
