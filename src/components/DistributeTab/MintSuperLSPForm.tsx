@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   Link,
@@ -25,7 +26,7 @@ type MintSuperLSPFormOptions = {
   lspAddress: string;
   tokenType: string; // short | long
   amount: string;
-  gasPrice: number;
+  gasPrice: string;
 };
 
 const mintFields: Array<FormField<MintSuperLSPFormOptions>> = [
@@ -51,10 +52,7 @@ const mintFields: Array<FormField<MintSuperLSPFormOptions>> = [
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
@@ -63,17 +61,8 @@ const mintFields: Array<FormField<MintSuperLSPFormOptions>> = [
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) => {
-        if (value === "") return true;
-
-        const num = parseInt(value);
-
-        if (num < 1 || num > 1000) {
-          return "Invalid number";
-        }
-
-        return true;
-      },
+      min: 1,
+      max: 1000,
     },
   },
 ];
@@ -179,7 +168,11 @@ const MintSuperLSPForm: React.FC = () => {
                       control={control}
                       rules={mintField.rules}
                       render={({ field, fieldState, formState }) => (
-                        <FormControl fullWidth variant="standard">
+                        <FormControl
+                          fullWidth
+                          variant="standard"
+                          error={Boolean(fieldState.error?.message)}
+                        >
                           <InputLabel id={`${mintField.name}-select-label`}>
                             {label}
                           </InputLabel>
@@ -197,6 +190,11 @@ const MintSuperLSPForm: React.FC = () => {
                               </MenuItem>
                             ))}
                           </Select>
+                          {Boolean(fieldState.error?.message) && (
+                            <FormHelperText>
+                              {fieldState.error?.message}
+                            </FormHelperText>
+                          )}
                         </FormControl>
                       )}
                     />
@@ -213,13 +211,10 @@ const MintSuperLSPForm: React.FC = () => {
                     rules={mintField.rules}
                     render={({ field, fieldState, formState }) => (
                       <BaseInput
-                        label={camelToSentenceCase(mintField.name)}
-                        description={mintField.description}
                         disabled={formState.isSubmitting}
-                        required={Boolean(mintField.rules.required)}
-                        type={mintField.type || "string"}
-                        error={fieldState.error?.message}
-                        field={field}
+                        customField={mintField}
+                        hookFormField={field}
+                        error={fieldState.error?.message || ""}
                       />
                     )}
                   />

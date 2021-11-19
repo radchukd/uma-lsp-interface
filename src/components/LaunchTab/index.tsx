@@ -33,7 +33,7 @@ const LaunchTab: React.FC = () => {
   const saveFPLOptions = ({
     gasPrice,
     ...options
-  }: FPLOptions & { gasPrice: number }): LaunchFormOptions => {
+  }: FPLOptions & { gasPrice: string }): LaunchFormOptions => {
     const opts = {
       ...formOptions,
       gasPrice,

@@ -6,7 +6,6 @@ import { Box, Button, Grid, Typography } from "@mui/material";
 
 import { AppContext } from "../../contexts/AppContext";
 import { DistributeOptions, FormField } from "../../helpers/models";
-import { camelToSentenceCase } from "../../helpers/utils";
 import BaseInput from "../BaseInput";
 
 const flowFields: Array<FormField<DistributeOptions>> = [
@@ -97,13 +96,10 @@ const DistributeForm: React.FC = () => {
                   rules={flowField.rules}
                   render={({ field, fieldState, formState }) => (
                     <BaseInput
-                      label={camelToSentenceCase(flowField.name)}
-                      description={flowField.description}
                       disabled={formState.isSubmitting}
-                      required={Boolean(flowField.rules.required)}
-                      type={flowField.type || "string"}
-                      error={fieldState.error?.message}
-                      field={field}
+                      customField={flowField}
+                      hookFormField={field}
+                      error={fieldState.error?.message || ""}
                     />
                   )}
                 />

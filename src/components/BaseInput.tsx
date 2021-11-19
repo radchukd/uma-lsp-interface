@@ -2,77 +2,50 @@ import React from "react";
 import { ControllerRenderProps } from "react-hook-form";
 
 import { Info } from "@mui/icons-material";
-import { Box, Popover, TextField } from "@mui/material";
+import { Box, TextField, Tooltip } from "@mui/material";
+import { FormField } from "../helpers/models";
+import { camelToSentenceCase } from "../helpers/utils";
 
 interface IBaseInput {
-  label: string;
-  description: string;
   disabled: boolean;
-  required: boolean;
-  type: string;
-  error?: string;
-  field?: ControllerRenderProps;
+  customField: FormField<any>;
+  hookFormField: ControllerRenderProps;
+  error: string;
 }
 
 const BaseInput: React.FC<IBaseInput> = ({
-  label,
-  description,
   disabled,
-  required,
-  type,
+  customField,
+  hookFormField,
   error,
-  field,
 }) => {
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-
-  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-  };
-
-  const open = Boolean(anchorEl);
-
   return (
     <React.Fragment>
       <Box display="flex" alignItems="flex-end">
         <TextField
-          {...field}
-          id={`${label}-input-label`}
+          id={`${customField.name.toString()}-input-label`}
           disabled={disabled}
-          required={required}
-          type={type}
-          label={label}
+          required={Boolean(customField.rules.required)}
+          type={customField.type || "string"}
+          label={camelToSentenceCase(customField.name.toString())}
           variant="standard"
           fullWidth
           error={Boolean(error)}
           helperText={error}
+          inputProps={
+            customField.type === "number"
+              ? {
+                  max: customField.rules.max?.toString(),
+                  min: customField.rules.min?.toString(),
+                  step: "any",
+                }
+              : {}
+          }
+          {...hookFormField}
         />
-        <Box onMouseEnter={handlePopoverOpen} onMouseLeave={handlePopoverClose}>
+        <Tooltip title={customField.description} placement="top">
           <Info />
-        </Box>
-        <Popover
-          id={`${label}-input-description`}
-          sx={{ pointerEvents: "none" }}
-          open={open}
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          onClose={handlePopoverClose}
-          disableRestoreFocus
-        >
-          <Box p={1} maxWidth="320px">
-            {description}
-          </Box>
-        </Popover>
+        </Tooltip>
       </Box>
     </React.Fragment>
   );

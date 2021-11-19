@@ -48,7 +48,7 @@ export type LSPOptions = {
 export type LaunchOptions = {
   web3: Web3;
   simulate: boolean; // Boolean telling if the script should only simulate the transactions without sending them to the network.
-  gasPrice: number; // Gas price to use in GWEI.
+  gasPrice: string; // Gas price to use in GWEI.
   lspOptions: LSPOptions;
   fplOptions: FPLOptions;
 };
@@ -77,7 +77,7 @@ export type CreatedLSP = {
 
 export type MintLSPPairOptions = {
   web3: Web3;
-  gasPrice: number;
+  gasPrice: string;
   amount: string;
   lspAddress: string;
 };
@@ -85,7 +85,7 @@ export type MintLSPPairOptions = {
 export type LaunchSuperTokenOptions = {
   web3: Web3;
   sf: SuperfluidSDK.Framework;
-  gasPrice: number;
+  gasPrice: string;
   tokenAddress: string;
   amount: string;
 };

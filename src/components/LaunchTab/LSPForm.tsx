@@ -44,10 +44,10 @@ const lspFields: Array<FormField<LSPOptions>> = [
     name: "collateralPerPair",
     description:
       "The amount of collateral required to mint each long and short pair. If 1 $UMA was used as collateral to mint, the minter would receive 4 long and 4 short tokens.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        Boolean(String(value).match(/^\d+$/)) || "Invalid number",
+      min: 0,
     },
   },
   {
@@ -108,36 +108,30 @@ const lspFields: Array<FormField<LSPOptions>> = [
     name: "prepaidProposerReward",
     description:
       "Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.",
+    type: "number",
     rules: {
       required: false,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "optimisticOracleLivenessTime",
     description:
       "Custom liveness window for disputing optimistic oracle price proposals in seconds. A longer liveness time provides more security, while a shorter one provides faster settlement. By default, this is set to 7200 seconds.",
+    type: "number",
     rules: {
       required: false,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "optimisticOracleProposerBond",
     description:
       "Additional bond a proposer must post with the optimistic oracle. A higher bond makes incorrect disputes and proposals more costly.",
+    type: "number",
     rules: {
       required: false,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
 ];
@@ -278,13 +272,10 @@ const LSPForm: React.FC<ILSPForm> = ({
                 rules={lspField.rules}
                 render={({ field, fieldState, formState }) => (
                   <BaseInput
-                    label={camelToSentenceCase(lspField.name)}
-                    description={lspField.description}
                     disabled={formState.isSubmitting}
-                    required={Boolean(lspField.rules.required)}
-                    type={lspField.type || "string"}
-                    error={fieldState.error?.message}
-                    field={field}
+                    customField={lspField}
+                    hookFormField={field}
+                    error={fieldState.error?.message || ""}
                   />
                 )}
               />

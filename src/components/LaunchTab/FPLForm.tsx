@@ -19,7 +19,7 @@ import { camelToSentenceCase } from "../../helpers/utils";
 import BaseInput from "../BaseInput";
 import { LaunchFormOptions } from ".";
 
-const fplFields: Array<FormField<FPLOptions & { gasPrice: number }>> = [
+const fplFields: Array<FormField<FPLOptions & { gasPrice: string }>> = [
   {
     name: "fpl",
     description: "Financial library used to calculate the payout at expiry.",
@@ -39,36 +39,30 @@ const fplFields: Array<FormField<FPLOptions & { gasPrice: number }>> = [
   {
     name: "basePercentage",
     description: "Percentage of collateral per pair used as the floor.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "lowerBound",
     description:
       "Below the lower bound each range token is worth the number of collateral that is set using collateral per pair.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "upperBound",
     description:
       "Above the upper bound, holders of the long token are entitled to a fixed, minimum number of collateral.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
@@ -77,17 +71,8 @@ const fplFields: Array<FormField<FPLOptions & { gasPrice: number }>> = [
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) => {
-        if (value === "") return true;
-
-        const num = parseInt(value);
-
-        if (num < 1 || num > 1000) {
-          return "Invalid number";
-        }
-
-        return true;
-      },
+      min: 1,
+      max: 1000,
     },
   },
 ];
@@ -95,7 +80,7 @@ const fplFields: Array<FormField<FPLOptions & { gasPrice: number }>> = [
 interface IFPLForm {
   fplOptions: FPLOptions;
   saveFPLOptions: (
-    options: FPLOptions & { gasPrice: number },
+    options: FPLOptions & { gasPrice: string },
   ) => LaunchFormOptions;
   handleBack: () => void;
 }
@@ -107,13 +92,16 @@ const FPLForm: React.FC<IFPLForm> = ({
 }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { web3, handleLoading } = React.useContext(AppContext);
-  const { control, handleSubmit, watch } = useForm<
-    FPLOptions & { gasPrice: number }
-  >({
-    defaultValues: { ...fplOptions, gasPrice: 1 },
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FPLOptions & { gasPrice: string }>({
+    defaultValues: { ...fplOptions, gasPrice: "1" },
   });
 
-  const onSubmit: SubmitHandler<FPLOptions & { gasPrice: number }> = async (
+  const onSubmit: SubmitHandler<FPLOptions & { gasPrice: string }> = async (
     data,
     event,
   ) => {
@@ -246,13 +234,10 @@ const FPLForm: React.FC<IFPLForm> = ({
                   rules={fplField.rules}
                   render={({ field, fieldState, formState }) => (
                     <BaseInput
-                      label={camelToSentenceCase(fplField.name)}
-                      description={fplField.description}
                       disabled={formState.isSubmitting}
-                      required={Boolean(fplField.rules.required)}
-                      type={fplField.type || "string"}
-                      error={fieldState.error?.message}
-                      field={field}
+                      customField={fplField}
+                      hookFormField={field}
+                      error={fieldState.error?.message || ""}
                     />
                   )}
                 />
@@ -260,7 +245,14 @@ const FPLForm: React.FC<IFPLForm> = ({
             );
           })}
           <Grid item xs={12} container alignItems="center">
-            <Button type="submit" variant="contained" value="back">
+            <Button
+              type={!Object.keys(errors).length ? "submit" : "button"}
+              onClick={
+                !Object.keys(errors).length ? undefined : () => handleBack()
+              }
+              variant="contained"
+              value="back"
+            >
               Back
             </Button>
           </Grid>
