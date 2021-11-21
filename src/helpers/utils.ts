@@ -8,7 +8,7 @@ export const camelToSentenceCase = (name: string) => {
 };
 
 export const parseCustomAncillaryData = (data?: string): string => {
-  if (!data) return "";
+  if (!data || !data.length) return "";
 
   const parsedData: Record<string, string> = JSON.parse(data);
 

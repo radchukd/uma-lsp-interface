@@ -1,14 +1,20 @@
 import { useSnackbar } from "notistack";
 import React from "react";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import {
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+} from "react-hook-form";
 
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Delete } from "@mui/icons-material";
+import { Box, Button, Grid, IconButton, Typography } from "@mui/material";
 
 import { AppContext } from "../../contexts/AppContext";
 import { DistributeOptions, FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
 
-const flowFields: Array<FormField<DistributeOptions>> = [
+const distributeFields: Array<FormField<DistributeOptions>> = [
   {
     name: "token",
     description: "Address of the super token.",
@@ -17,44 +23,73 @@ const flowFields: Array<FormField<DistributeOptions>> = [
     },
   },
   {
-    name: "recipient",
-    description: "Recipient of the super token.",
-    rules: {
-      required: true,
-    },
-  },
-  {
-    name: "flowRate",
-    description: "The amount of super token to transfer per second.",
+    name: "amount",
+    description: "The amount of super tokens to distribute",
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        Boolean(String(value).match(/^\d+$/)) || "Invalid number",
+      min: 0,
     },
   },
 ];
 
 const DistributeForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { sf, userAddress, handleLoading } = React.useContext(AppContext);
-  const { control, handleSubmit } = useForm<{}>();
+  const { web3, sf, userAddress, handleLoading } = React.useContext(AppContext);
+  const { control, handleSubmit } = useForm<DistributeOptions>();
+  const {
+    fields: recipientFields,
+    append,
+    remove,
+  } = useFieldArray({ control, name: "recipients" });
 
   const onSubmit: SubmitHandler<DistributeOptions> = async ({
     token,
-    recipient,
-    flowRate,
+    amount,
+    recipients,
   }) => {
-    if (!sf || !userAddress) return;
+    if (!web3 || !sf || !userAddress) return;
+
+    const { toBN } = web3.utils;
+
+    if (
+      !recipients.length ||
+      recipients.reduce(
+        (prevRecipientShares, curRecipient) =>
+          prevRecipientShares + Number(curRecipient.shares),
+        0,
+      ) > 100
+    )
+      return;
 
     try {
       handleLoading(true);
 
-      await sf
-        .user({ address: userAddress, token })
-        .flow({ recipient, flowRate });
+      const user = sf.user({ address: userAddress, token });
+      const pools =
+        (await sf.ida?.listIndices({
+          publisher: userAddress,
+          superToken: token,
+        })) || [];
 
-      enqueueSnackbar(`Flow was created`, {
+      const poolId = ++pools[pools.length - 1] || 1;
+
+      await user.createPool({ poolId });
+
+      for (const recipient of recipients) {
+        await user.giveShares({
+          poolId,
+          recipient: recipient.address,
+          shares: Number(recipient.shares),
+        });
+      }
+
+      await user.distributeToPool({
+        poolId,
+        amount: toBN(amount).mul(toBN(10).pow(toBN(18))),
+      });
+
+      enqueueSnackbar(`Tokens were distributed`, {
         variant: "success",
         anchorOrigin: { horizontal: "right", vertical: "top" },
         autoHideDuration: 2500,
@@ -79,33 +114,97 @@ const DistributeForm: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mt: 1, mb: 1 }}>
           <Typography variant="h6">
-            Create a Constant Flow Agreement "CFA"
+            Create a pool and distribute tokens
           </Typography>
           <Typography variant="body2">
             Make sure you've tranformed your long/short token into a supertoken.
           </Typography>
         </Box>
         <Grid container spacing={3}>
-          {flowFields.map((flowField) => {
-            return (
-              <Grid key={flowField.name} item xs={12} md={6}>
-                <Controller
-                  name={flowField.name as never}
-                  defaultValue=""
-                  control={control}
-                  rules={flowField.rules}
-                  render={({ field, fieldState, formState }) => (
-                    <BaseInput
-                      disabled={formState.isSubmitting}
-                      customField={flowField}
-                      hookFormField={field}
-                      error={fieldState.error?.message || ""}
-                    />
-                  )}
-                />
-              </Grid>
-            );
-          })}
+          {distributeFields.map((flowField) => (
+            <Grid key={flowField.name} item xs={12} md={6}>
+              <Controller
+                name={flowField.name as never}
+                defaultValue=""
+                control={control}
+                rules={flowField.rules}
+                render={({ field, fieldState, formState }) => (
+                  <BaseInput
+                    disabled={formState.isSubmitting}
+                    customField={flowField}
+                    hookFormField={field}
+                    error={fieldState.error?.message || ""}
+                  />
+                )}
+              />
+            </Grid>
+          ))}
+          {recipientFields.map((recipientField, index) => (
+            <Grid
+              key={recipientField.id}
+              item
+              xs={12}
+              container
+              alignItems="center"
+            >
+              <Controller
+                name={`recipients.${index}.address`}
+                defaultValue=""
+                control={control as any}
+                rules={{ required: true }}
+                render={({ field, fieldState, formState }) => (
+                  <BaseInput
+                    disabled={formState.isSubmitting}
+                    customField={{
+                      name: "address",
+                      rules: { required: true },
+                    }}
+                    hookFormField={field}
+                    error={fieldState.error?.message || ""}
+                    fullWidth={false}
+                  />
+                )}
+              />
+              <Box sx={{ width: "24px" }} />
+              <Controller
+                name={`recipients.${index}.shares`}
+                defaultValue=""
+                control={control as any}
+                rules={{ required: true, min: 0, max: 100 }}
+                render={({ field, fieldState, formState }) => (
+                  <BaseInput
+                    disabled={formState.isSubmitting}
+                    customField={{
+                      name: "shares",
+                      type: "number",
+                      rules: { min: 0, max: 100, required: true },
+                    }}
+                    hookFormField={field}
+                    error={fieldState.error?.message || ""}
+                    fullWidth={false}
+                  />
+                )}
+              />
+              <IconButton onClick={() => remove(index)}>
+                <Delete />
+              </IconButton>
+            </Grid>
+          ))}
+          <Grid
+            item
+            xs={12}
+            container
+            alignItems="center"
+            justifyContent="flex-end"
+          >
+            <Button
+              type="button"
+              variant="contained"
+              onClick={() => append({ address: "", shares: "" })}
+            >
+              Add recipient
+            </Button>
+          </Grid>
           <Grid
             item
             xs={12}
@@ -114,7 +213,7 @@ const DistributeForm: React.FC = () => {
             justifyContent="flex-end"
           >
             <Button type="submit" variant="contained">
-              Start flow
+              Distribute
             </Button>
           </Grid>
         </Grid>

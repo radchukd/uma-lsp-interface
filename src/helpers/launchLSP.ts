@@ -19,7 +19,7 @@ import {
 } from "@uma/contracts-frontend";
 
 import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
-import { FPL, FPLParams, LaunchData, LaunchOptions } from "./models";
+import { FPL, FPLParams, LaunchOptions } from "./models";
 import { parseCustomAncillaryData } from "./utils";
 
 const getFPLParams = (
@@ -106,7 +106,7 @@ export default async function launchLSP({
   basePercentage,
   lowerBound,
   upperBound,
-}: LaunchOptions): Promise<LaunchData> {
+}: LaunchOptions): Promise<string> {
   const { utf8ToHex, padRight, toWei } = web3.utils;
 
   const account = (await web3.eth.getAccounts())[0];
@@ -181,11 +181,6 @@ export default async function launchLSP({
     ),
   );
 
-  const launchData = {
-    createLongShortPair: { address: "", transactionHash: "" },
-    setLongShortPairParameters: { transactionHash: "" },
-  };
-
   const lspCreator = new web3.eth.Contract(
     lspCreatorABI as any,
     getLongShortPairCreatorAddress(chainId),
@@ -195,29 +190,20 @@ export default async function launchLSP({
   const address = await lspCreator.methods
     .createLongShortPair(lspParams)
     .call();
-  launchData.createLongShortPair.address = address;
 
   if (!simulate) {
-    const { transactionHash } = await lspCreator.methods
-      .createLongShortPair(lspParams)
-      .send();
-    launchData.createLongShortPair.transactionHash = transactionHash;
-  }
+    await lspCreator.methods.createLongShortPair(lspParams).send();
 
-  const deployedFPL = new web3.eth.Contract(
-    fplParams.abi,
-    fplParams.address,
-    contractParams,
-  );
+    const deployedFPL = new web3.eth.Contract(
+      fplParams.abi,
+      fplParams.address,
+      contractParams,
+    );
 
-  if (!simulate) {
-    const { transactionHash } = await deployedFPL.methods
+    await deployedFPL.methods
       .setLongShortPairParameters(address, ...fplContractParamsInWei)
       .send();
-    launchData.setLongShortPairParameters.transactionHash = transactionHash;
   }
 
-  console.log(launchData);
-
-  return launchData;
+  return address;
 }

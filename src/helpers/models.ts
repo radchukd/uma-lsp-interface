@@ -5,7 +5,7 @@ import SuperfluidSDK from "@superfluid-finance/js-sdk";
 
 export type FormField<Opts> = {
   name: keyof Opts;
-  description: string;
+  description?: string;
   rules: RegisterOptions;
   type?: string;
   options?: Array<string>;
@@ -53,16 +53,6 @@ export type FPLParams = {
   contractParams: Array<any>;
 };
 
-export type LaunchData = {
-  createLongShortPair: {
-    address: string | undefined;
-    transactionHash: string | undefined;
-  };
-  setLongShortPairParameters: {
-    transactionHash: string | undefined;
-  };
-};
-
 export type CreatedLSP = {
   longShortPair: string;
   longToken: string;
@@ -85,6 +75,17 @@ export type LaunchSuperTokenOptions = {
 };
 
 export type DistributeOptions = {
+  token: string;
+  amount: string;
+  recipients: Array<IDARecipient>;
+};
+
+export type IDARecipient = {
+  address: string;
+  shares: string; // 1 - 100
+};
+
+export type FlowOptions = {
   token: string;
   recipient: string;
   flowRate: string;

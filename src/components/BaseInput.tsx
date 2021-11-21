@@ -11,6 +11,7 @@ interface IBaseInput {
   customField: FormField<any>;
   hookFormField: ControllerRenderProps;
   error: string;
+  fullWidth?: boolean;
 }
 
 const BaseInput: React.FC<IBaseInput> = ({
@@ -18,6 +19,7 @@ const BaseInput: React.FC<IBaseInput> = ({
   customField,
   hookFormField,
   error,
+  fullWidth = true,
 }) => {
   return (
     <React.Fragment>
@@ -29,7 +31,7 @@ const BaseInput: React.FC<IBaseInput> = ({
           type={customField.type || "string"}
           label={camelToSentenceCase(customField.name.toString())}
           variant="standard"
-          fullWidth
+          fullWidth={fullWidth}
           error={Boolean(error)}
           helperText={error}
           inputProps={
@@ -43,9 +45,11 @@ const BaseInput: React.FC<IBaseInput> = ({
           }
           {...hookFormField}
         />
-        <Tooltip title={customField.description} placement="top">
-          <Info />
-        </Tooltip>
+        {customField.description && (
+          <Tooltip title={customField.description} placement="top">
+            <Info />
+          </Tooltip>
+        )}
       </Box>
     </React.Fragment>
   );

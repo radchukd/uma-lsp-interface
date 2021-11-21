@@ -68,12 +68,24 @@ Example parameters:
 - Amount = 3
 - Gas Price = 1
 
-### 3. Start flow
+### Distribute
 
-- Navigate to Distribute -> Start flow
+#### Create flow
+
+- Navigate to Distribute -> Distribute -> Create a Constant Flow Agreement "CFA"
 - Enter the super token, recipient and flow rate (tokens per second)
 - Sign 1 transaction
 
 Example parameters:
 
 - Flow rate = 385802469135
+
+#### Create pool
+
+- Navigate to Distribute -> Distribute -> Create a pool and distribute tokens
+- Enter the super token, amount of tokens to distribute and recipients
+- Sign 2+X transaction (Create pool, ? X give shares, distibute)
+
+Example parameters:
+
+- Amount = 1

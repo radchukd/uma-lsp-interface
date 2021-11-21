@@ -165,11 +165,7 @@ const FPLForm: React.FC<IFPLForm> = ({
   const isKPIOption = fpl === "BinaryOption" || fpl === "Linear";
   const { enqueueSnackbar } = useSnackbar();
   const { web3, handleLoading } = React.useContext(AppContext);
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FPLFormOptions>({
+  const { control, handleSubmit, getValues } = useForm<FPLFormOptions>({
     defaultValues: {
       ...(formOptions as unknown as FPLFormOptions),
       ...(formOptions.customAncillaryData?.length
@@ -178,8 +174,20 @@ const FPLForm: React.FC<IFPLForm> = ({
     },
   });
 
-  const onSubmit: SubmitHandler<FPLFormOptions> = async (
-    {
+  const prepareFormOptions = ({
+    Metric,
+    Endpoint,
+    Method,
+    Key,
+    Interval,
+    Fallback,
+    Aggregation,
+    Scaling,
+    Unresolved,
+    ...data
+  }: FPLFormOptions): Partial<LaunchFormOptions> => ({
+    ...data,
+    customAncillaryData: JSON.stringify({
       Metric,
       Endpoint,
       Method,
@@ -189,51 +197,35 @@ const FPLForm: React.FC<IFPLForm> = ({
       Aggregation,
       Scaling,
       Unresolved,
-      ...data
-    },
-    event,
-  ) => {
+    }),
+  });
+
+  const onBackClick = () => {
+    saveFormOptions(prepareFormOptions(getValues()));
+    handleBack();
+  };
+
+  const onSubmit: SubmitHandler<FPLFormOptions> = async (data, event) => {
     const submitEvent = (
       (event?.nativeEvent as SubmitEvent).submitter?.attributes as NamedNodeMap
     ).getNamedItem("value")?.value;
 
     const simulate = submitEvent === "simulate";
-    const launchOptions = saveFormOptions({
-      ...data,
-      customAncillaryData: JSON.stringify({
-        Metric,
-        Endpoint,
-        Method,
-        Key,
-        Interval,
-        Fallback,
-        Aggregation,
-        Scaling,
-        Unresolved,
-      }),
-    });
 
-    if (submitEvent === "back") {
-      handleBack();
-      return;
-    }
+    const launchOptions = saveFormOptions(prepareFormOptions(data));
 
     if (!web3) return;
 
     try {
       handleLoading(true);
 
-      const launchData = await launchLSP({
+      const address = await launchLSP({
         web3,
         simulate,
         ...launchOptions,
       });
 
-      const message = simulate
-        ? `Expected address: ${launchData.createLongShortPair.address}`
-        : `Transaction hash: ${launchData.createLongShortPair.transactionHash}`;
-
-      enqueueSnackbar(message, {
+      enqueueSnackbar(`LSP address: ${address}`, {
         variant: "success",
         anchorOrigin: { horizontal: "right", vertical: "top" },
         autoHideDuration: 2500,
@@ -295,14 +287,7 @@ const FPLForm: React.FC<IFPLForm> = ({
               </Grid>
             ))}
           <Grid item xs={12} container alignItems="center">
-            <Button
-              type={!Object.keys(errors).length ? "submit" : "button"}
-              onClick={
-                !Object.keys(errors).length ? undefined : () => handleBack()
-              }
-              variant="contained"
-              value="back"
-            >
+            <Button type="button" onClick={onBackClick} variant="contained">
               Back
             </Button>
           </Grid>
