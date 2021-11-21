@@ -20,14 +20,11 @@ export type FPL =
   | "SimpleSuccessToken"
   | "SuccessToken";
 
-export type FPLOptions = {
-  fpl: FPL; // Name of the financial product library type your contract will use to calculate the payment at expiry.
-  basePercentage: string; // The percentage of collateral per pair used as the floor.
-  lowerBound: string; // Lower bound of a price range for certain financial product libraries.
-  upperBound: string; // Upper bound of a price range for certain financial product libraries.
-};
-
-export type LSPOptions = {
+export type LaunchOptions = {
+  web3: Web3;
+  simulate: boolean; // Boolean telling if the script should only simulate the transactions without sending them to the network.
+  gasPrice: string; // Gas price to use in GWEI.
+  // LSP options
   // Mandatory
   pairName: string; // The desired name of the token pair.
   expirationTimestamp: Date; // Timestamp that the contract will expire at.
@@ -43,14 +40,11 @@ export type LSPOptions = {
   prepaidProposerReward: string; // Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.
   optimisticOracleLivenessTime: string; // Custom liveness window for disputing optimistic oracle price proposals in seconds.
   optimisticOracleProposerBond: string; // Additional bond proposer must post with the optimistic oracle.
-};
-
-export type LaunchOptions = {
-  web3: Web3;
-  simulate: boolean; // Boolean telling if the script should only simulate the transactions without sending them to the network.
-  gasPrice: string; // Gas price to use in GWEI.
-  lspOptions: LSPOptions;
-  fplOptions: FPLOptions;
+  // FPL options
+  fpl: FPL; // Name of the financial product library type your contract will use to calculate the payment at expiry.
+  basePercentage: string; // The percentage of collateral per pair used as the floor.
+  lowerBound: string; // Lower bound of a price range for certain financial product libraries.
+  upperBound: string; // Upper bound of a price range for certain financial product libraries.
 };
 
 export type FPLParams = {

@@ -19,10 +19,14 @@ import {
 } from "@uma/contracts-frontend";
 
 import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
-import { FPLOptions, FPLParams, LaunchData, LaunchOptions } from "./models";
+import { FPL, FPLParams, LaunchData, LaunchOptions } from "./models";
+import { parseCustomAncillaryData } from "./utils";
 
 const getFPLParams = (
-  { fpl, basePercentage, lowerBound, upperBound }: FPLOptions,
+  fpl: FPL,
+  basePercentage: string,
+  lowerBound: string,
+  upperBound: string,
   chainId: number,
 ): FPLParams => {
   switch (fpl) {
@@ -85,22 +89,23 @@ export default async function launchLSP({
   web3,
   simulate,
   gasPrice,
-  lspOptions: {
-    pairName,
-    expirationTimestamp,
-    collateralPerPair,
-    priceIdentifier,
-    longSynthName,
-    longSynthSymbol,
-    shortSynthName,
-    shortSynthSymbol,
-    collateralToken,
-    customAncillaryData,
-    prepaidProposerReward,
-    optimisticOracleLivenessTime,
-    optimisticOracleProposerBond,
-  },
-  fplOptions,
+  pairName,
+  expirationTimestamp,
+  collateralPerPair,
+  priceIdentifier,
+  longSynthName,
+  longSynthSymbol,
+  shortSynthName,
+  shortSynthSymbol,
+  collateralToken,
+  customAncillaryData,
+  prepaidProposerReward,
+  optimisticOracleLivenessTime,
+  optimisticOracleProposerBond,
+  fpl,
+  basePercentage,
+  lowerBound,
+  upperBound,
 }: LaunchOptions): Promise<LaunchData> {
   const { utf8ToHex, padRight, toWei } = web3.utils;
 
@@ -120,7 +125,13 @@ export default async function launchLSP({
             .call()
         )[0]) || "0";
 
-  const fplParams = getFPLParams(fplOptions, chainId);
+  const fplParams = getFPLParams(
+    fpl,
+    basePercentage,
+    lowerBound,
+    upperBound,
+    chainId,
+  );
   const fplContractParamsInWei = fplParams.contractParams.map((param) =>
     toWei(param),
   );
@@ -138,7 +149,9 @@ export default async function launchLSP({
     /* string  */ shortSynthSymbol,
     /* address */ collateralToken,
     /* address */ financialProductLibrary: fplParams.address,
-    /* bytes   */ customAncillaryData: utf8ToHex(customAncillaryData),
+    /* bytes   */ customAncillaryData: utf8ToHex(
+      parseCustomAncillaryData(customAncillaryData),
+    ),
     /* uint256 */ prepaidProposerReward: prepaidProposerReward.length
       ? toWei(prepaidProposerReward)
       : "0",

@@ -5,6 +5,7 @@ import DateTimePicker from "@mui/lab/DateTimePicker";
 import {
   Button,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   MenuItem,
@@ -16,13 +17,29 @@ import {
 
 import { AppContext } from "../../contexts/AppContext";
 import { collateralTokens, priceIdentifiers } from "../../helpers/constants";
-import { FormField, LSPOptions } from "../../helpers/models";
+import { FormField, FPL } from "../../helpers/models";
 import { camelToSentenceCase } from "../../helpers/utils";
 import BaseInput from "../BaseInput";
 import { LaunchFormOptions } from ".";
 import { isAfter, endOfToday } from "date-fns";
 
-const lspFields: Array<FormField<LSPOptions>> = [
+export type LSPFormOptions = {
+  pairName: string;
+  expirationTimestamp: Date;
+  collateralPerPair: string;
+  priceIdentifier: string;
+  longSynthName: string;
+  longSynthSymbol: string;
+  shortSynthName: string;
+  shortSynthSymbol: string;
+  collateralToken: string;
+  prepaidProposerReward: string;
+  optimisticOracleLivenessTime: string;
+  optimisticOracleProposerBond: string;
+  fpl: FPL;
+};
+
+const lspFields: Array<FormField<LSPFormOptions>> = [
   {
     name: "pairName",
     description: "The desired name of the token pair.",
@@ -97,14 +114,6 @@ const lspFields: Array<FormField<LSPOptions>> = [
     options: [],
   },
   {
-    name: "customAncillaryData",
-    description:
-      "Custom ancillary data to be passed along with the price request.",
-    rules: {
-      required: false,
-    },
-  },
-  {
     name: "prepaidProposerReward",
     description:
       "Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.",
@@ -134,25 +143,51 @@ const lspFields: Array<FormField<LSPOptions>> = [
       min: 0,
     },
   },
+  {
+    name: "fpl",
+    description: "Financial library used to calculate the payout at expiry.",
+    rules: {
+      required: true,
+    },
+    options: [
+      "BinaryOption",
+      "CappedYieldDollar",
+      "CoveredCall",
+      "Linear",
+      "RangeBond",
+      "SimpleSuccessToken",
+      "SuccessToken",
+    ],
+  },
 ];
 
 interface ILSPForm {
-  lspOptions: LSPOptions;
-  saveLSPOptions: (options: LSPOptions) => LaunchFormOptions;
+  formOptions: LaunchFormOptions;
+  saveFormOptions: (options: Partial<LaunchFormOptions>) => LaunchFormOptions;
   handleNext: () => void;
 }
 
 const LSPForm: React.FC<ILSPForm> = ({
-  lspOptions,
-  saveLSPOptions,
+  formOptions,
+  saveFormOptions,
   handleNext,
 }) => {
   const { chainId } = React.useContext(AppContext);
-  const { control, handleSubmit } = useForm<LSPOptions>({
-    defaultValues: lspOptions,
+  const { control, handleSubmit, setError } = useForm<LSPFormOptions>({
+    defaultValues: formOptions as LSPFormOptions,
   });
 
-  const onSubmit: SubmitHandler<LSPOptions> = (data, event) => {
+  const onSubmit: SubmitHandler<LSPFormOptions> = (data, event) => {
+    if (
+      (data.fpl === "BinaryOption" || data.fpl === "Linear") &&
+      data.priceIdentifier !== "General_KPI"
+    ) {
+      setError("priceIdentifier", {
+        message: "Binary and Linear options only support General_KPI",
+      });
+      return;
+    }
+
     // Check if entered manually on test networks
     const collateralToken = data.collateralToken.startsWith("0x")
       ? data.collateralToken
@@ -166,7 +201,7 @@ const LSPForm: React.FC<ILSPForm> = ({
           ?.split("/")
           ?.pop()!;
 
-    saveLSPOptions({
+    saveFormOptions({
       ...data,
       collateralToken,
     });
@@ -210,13 +245,17 @@ const LSPForm: React.FC<ILSPForm> = ({
               </Grid>
             );
           } else if (
+            lspField.name === "fpl" ||
             lspField.name === "priceIdentifier" ||
             (lspField.name === "collateralToken" &&
               (chainId === 1 || chainId === 137))
           ) {
-            const label = `${camelToSentenceCase(lspField.name)} ${
-              lspField.rules.required ? "*" : ""
-            }`;
+            const label =
+              lspField.name !== "fpl"
+                ? `${camelToSentenceCase(lspField.name)} ${
+                    lspField.rules.required ? "*" : ""
+                  }`
+                : "Financial product *";
 
             if (lspField.name === "collateralToken") {
               lspField.options = collateralTokens
@@ -238,7 +277,11 @@ const LSPForm: React.FC<ILSPForm> = ({
                   control={control}
                   rules={lspField.rules}
                   render={({ field, fieldState, formState }) => (
-                    <FormControl fullWidth variant="standard">
+                    <FormControl
+                      fullWidth
+                      variant="standard"
+                      error={Boolean(fieldState.error?.message)}
+                    >
                       <InputLabel id={`${lspField.name}-select-label`}>
                         {label}
                       </InputLabel>
@@ -252,10 +295,17 @@ const LSPForm: React.FC<ILSPForm> = ({
                       >
                         {lspField.options!.map((option) => (
                           <MenuItem key={option} value={option}>
-                            {option}
+                            {lspField.name !== "fpl"
+                              ? option
+                              : camelToSentenceCase(option)}
                           </MenuItem>
                         ))}
                       </Select>
+                      {Boolean(fieldState.error?.message) && (
+                        <FormHelperText>
+                          {fieldState.error?.message}
+                        </FormHelperText>
+                      )}
                     </FormControl>
                   )}
                 />
