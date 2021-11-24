@@ -260,7 +260,11 @@ const FPLForm: React.FC<IFPLForm> = ({
               ) {
                 return true;
               } else if (fplField.name === "upperBound") {
-                return fpl === "RangeBond" || fpl === "Linear";
+                return (
+                  fpl === "RangeBond" ||
+                  fpl === "Linear" ||
+                  fpl === "KPI Option - Linear"
+                );
               } else if (fplField.name === "basePercentage") {
                 return fpl === "SuccessToken";
               } else if (fplField.name === "customAncillaryData") {
