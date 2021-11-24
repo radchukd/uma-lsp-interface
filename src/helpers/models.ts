@@ -18,7 +18,9 @@ export type FPL =
   | "Linear"
   | "RangeBond"
   | "SimpleSuccessToken"
-  | "SuccessToken";
+  | "SuccessToken"
+  | "KPI Option - Linear"
+  | "KPI Option - Binary";
 
 export type LaunchOptions = {
   web3: Web3;

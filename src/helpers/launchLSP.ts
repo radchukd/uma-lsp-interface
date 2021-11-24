@@ -31,6 +31,7 @@ const getFPLParams = (
 ): FPLParams => {
   switch (fpl) {
     case "BinaryOption":
+    case "KPI Option - Binary":
       return {
         address:
           getBinaryOptionLongShortPairFinancialProductLibraryAddress(chainId),
@@ -70,6 +71,7 @@ const getFPLParams = (
         contractParams: [upperBound, lowerBound],
       };
     case "Linear":
+    case "KPI Option - Linear":
       return {
         address: getLinearLongShortPairFinancialProductLibraryAddress(chainId),
         abi: getLinearLongShortPairFinancialProductLibraryAbi(),

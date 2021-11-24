@@ -162,7 +162,7 @@ const FPLForm: React.FC<IFPLForm> = ({
   handleBack,
 }) => {
   const { fpl } = formOptions;
-  const isKPIOption = fpl === "BinaryOption" || fpl === "Linear";
+  const isKPIOption = fpl.startsWith("KPI Option");
   const { enqueueSnackbar } = useSnackbar();
   const { web3, handleLoading } = React.useContext(AppContext);
   const { control, handleSubmit, getValues } = useForm<FPLFormOptions>({

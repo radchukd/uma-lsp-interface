@@ -157,6 +157,8 @@ const lspFields: Array<FormField<LSPFormOptions>> = [
       "RangeBond",
       "SimpleSuccessToken",
       "SuccessToken",
+      "KPI Option - Linear",
+      "KPI Option - Binary",
     ],
   },
 ];
@@ -179,11 +181,11 @@ const LSPForm: React.FC<ILSPForm> = ({
 
   const onSubmit: SubmitHandler<LSPFormOptions> = (data, event) => {
     if (
-      (data.fpl === "BinaryOption" || data.fpl === "Linear") &&
+      data.fpl.includes("KPI Option") &&
       data.priceIdentifier !== "General_KPI"
     ) {
       setError("priceIdentifier", {
-        message: "Binary and Linear options only support General_KPI",
+        message: "Binary and Linear KPI options only support General_KPI",
       });
       return;
     }
@@ -201,9 +203,15 @@ const LSPForm: React.FC<ILSPForm> = ({
           ?.split("/")
           ?.pop()!;
 
+    // reset if switches to non-KPI option
+    const customAncillaryData = !data.fpl.includes("KPI Option")
+      ? ""
+      : formOptions.customAncillaryData;
+
     saveFormOptions({
       ...data,
       collateralToken,
+      customAncillaryData,
     });
 
     handleNext();
@@ -295,7 +303,8 @@ const LSPForm: React.FC<ILSPForm> = ({
                       >
                         {lspField.options!.map((option) => (
                           <MenuItem key={option} value={option}>
-                            {lspField.name !== "fpl"
+                            {lspField.name !== "fpl" ||
+                            option.includes("KPI Option")
                               ? option
                               : camelToSentenceCase(option)}
                           </MenuItem>
