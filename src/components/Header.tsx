@@ -123,6 +123,13 @@ const Header: React.FC = () => {
           >
             Success
           </Link>
+          {", "}
+          <Link
+            href="https://docs.umaproject.org/kpi-options/summary"
+            target="_blank"
+          >
+            KPI Options
+          </Link>
           {"."}
           <br />
           Supported Networks: Mainnet, Kovan, Polygon, Mumbai.
@@ -150,6 +157,14 @@ const Header: React.FC = () => {
             target="_blank"
           >
             • Approved collateral tokens
+          </Link>
+          <br />
+          <Link
+            href="https://docs.umaproject.org/kpi-options/kpi-price-identifier"
+            target="_blank"
+          >
+            • Using the General_KPI Price Identifier and Ancillary Data
+            parameters
           </Link>
           <br />
           <Link

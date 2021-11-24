@@ -60,14 +60,9 @@ const fplFields: Array<FormField<FPLFormOptions>> = [
       min: 0,
     },
   },
-  {
-    name: "customAncillaryData",
-    description:
-      "Custom ancillary data to be passed along with the price request.",
-    rules: {
-      required: false,
-    },
-  },
+];
+
+const requiredCustomAncillaryDataFields: Array<FormField<FPLFormOptions>> = [
   {
     name: "Metric",
     description:
@@ -108,6 +103,17 @@ const fplFields: Array<FormField<FPLFormOptions>> = [
       required: true,
     },
   },
+];
+
+const optionalCustomAncillaryDataFields: Array<FormField<FPLFormOptions>> = [
+  {
+    name: "customAncillaryData",
+    description:
+      "Custom ancillary data to be passed along with the price request.",
+    rules: {
+      required: false,
+    },
+  },
   {
     name: "Fallback",
     description:
@@ -138,17 +144,18 @@ const fplFields: Array<FormField<FPLFormOptions>> = [
       "This is numeric value that voters should return for unresolvable price request (defaults to zero if omitted).",
     rules: {},
   },
-  {
-    name: "gasPrice",
-    description: "Gas price to use in GWEI.",
-    type: "number",
-    rules: {
-      required: true,
-      min: 1,
-      max: 1000,
-    },
-  },
 ];
+
+const gasPriceField: FormField<FPLFormOptions> = {
+  name: "gasPrice",
+  description: "Gas price to use in GWEI.",
+  type: "number",
+  rules: {
+    required: true,
+    min: 1,
+    max: 1000,
+  },
+};
 
 interface IFPLForm {
   formOptions: LaunchFormOptions;
@@ -245,21 +252,37 @@ const FPLForm: React.FC<IFPLForm> = ({
     }
   };
 
+  const renderField = (fplField: FormField<FPLFormOptions>) => {
+    return (
+      <Grid key={fplField.name} item xs={12} md={6}>
+        <Controller
+          name={fplField.name as never}
+          defaultValue=""
+          control={control}
+          rules={fplField.rules}
+          render={({ field, fieldState, formState }) => (
+            <BaseInput
+              disabled={formState.isSubmitting}
+              customField={fplField}
+              hookFormField={field}
+              error={fieldState.error?.message || ""}
+            />
+          )}
+        />
+      </Grid>
+    );
+  };
+
   return (
     <React.Fragment>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
-          FPL parameters
-        </Typography>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="h6">FPL parameters</Typography>
+          </Grid>
           {fplFields
             .filter((fplField) => {
-              if (
-                fplField.name === "gasPrice" ||
-                fplField.name === "lowerBound"
-              ) {
-                return true;
-              } else if (fplField.name === "upperBound") {
+              if (fplField.name === "upperBound") {
                 return (
                   fpl === "RangeBond" ||
                   fpl === "Linear" ||
@@ -267,29 +290,36 @@ const FPLForm: React.FC<IFPLForm> = ({
                 );
               } else if (fplField.name === "basePercentage") {
                 return fpl === "SuccessToken";
-              } else if (fplField.name === "customAncillaryData") {
-                return !isKPIOption;
               }
-              return isKPIOption;
+              return true; // lowerBound
             })
-            .map((fplField) => (
-              <Grid key={fplField.name} item xs={12} md={6}>
-                <Controller
-                  name={fplField.name as never}
-                  defaultValue=""
-                  control={control}
-                  rules={fplField.rules}
-                  render={({ field, fieldState, formState }) => (
-                    <BaseInput
-                      disabled={formState.isSubmitting}
-                      customField={fplField}
-                      hookFormField={field}
-                      error={fieldState.error?.message || ""}
-                    />
-                  )}
-                />
+            .map(renderField)}
+          {isKPIOption && (
+            <React.Fragment>
+              <Grid item xs={12}>
+                <Typography variant="h6">
+                  Mandatory Ancillary Data Parameters
+                </Typography>
               </Grid>
-            ))}
+              {requiredCustomAncillaryDataFields.map(renderField)}
+            </React.Fragment>
+          )}
+          <Grid item xs={12}>
+            <Typography variant="h6">
+              Optional Ancillary Data Parameters
+            </Typography>
+          </Grid>
+          {optionalCustomAncillaryDataFields
+            .filter((fplField) =>
+              fplField.name === "customAncillaryData"
+                ? !isKPIOption
+                : isKPIOption,
+            )
+            .map(renderField)}
+          <Grid item xs={12}>
+            <Typography variant="h6">Gas Price</Typography>
+          </Grid>
+          {renderField(gasPriceField)}
           <Grid item xs={12} container alignItems="center">
             <Button type="button" onClick={onBackClick} variant="contained">
               Back

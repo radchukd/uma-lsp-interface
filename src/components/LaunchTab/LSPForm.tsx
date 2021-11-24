@@ -39,7 +39,7 @@ export type LSPFormOptions = {
   fpl: FPL;
 };
 
-const lspFields: Array<FormField<LSPFormOptions>> = [
+const requiredLspFields: Array<FormField<LSPFormOptions>> = [
   {
     name: "pairName",
     description: "The desired name of the token pair.",
@@ -114,6 +114,27 @@ const lspFields: Array<FormField<LSPFormOptions>> = [
     options: [],
   },
   {
+    name: "fpl",
+    description: "Financial library used to calculate the payout at expiry.",
+    rules: {
+      required: true,
+    },
+    options: [
+      "BinaryOption",
+      "CappedYieldDollar",
+      "CoveredCall",
+      "Linear",
+      "RangeBond",
+      "SimpleSuccessToken",
+      "SuccessToken",
+      "KPI Option - Linear",
+      "KPI Option - Binary",
+    ],
+  },
+];
+
+const optionalLspFields: Array<FormField<LSPFormOptions>> = [
+  {
     name: "prepaidProposerReward",
     description:
       "Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.",
@@ -142,24 +163,6 @@ const lspFields: Array<FormField<LSPFormOptions>> = [
       required: false,
       min: 0,
     },
-  },
-  {
-    name: "fpl",
-    description: "Financial library used to calculate the payout at expiry.",
-    rules: {
-      required: true,
-    },
-    options: [
-      "BinaryOption",
-      "CappedYieldDollar",
-      "CoveredCall",
-      "Linear",
-      "RangeBond",
-      "SimpleSuccessToken",
-      "SuccessToken",
-      "KPI Option - Linear",
-      "KPI Option - Binary",
-    ],
   },
 ];
 
@@ -217,130 +220,133 @@ const LSPForm: React.FC<ILSPForm> = ({
     handleNext();
   };
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
-        LSP parameters
-      </Typography>
-      <Grid container spacing={3}>
-        {lspFields.map((lspField) => {
-          if (lspField.name === "expirationTimestamp") {
-            return (
-              <Grid key={lspField.name} item xs={12} md={6}>
-                <Controller
-                  name={lspField.name as never}
-                  defaultValue={new Date()}
-                  control={control}
-                  rules={lspField.rules}
-                  render={({ field, fieldState, formState }) => (
-                    <DateTimePicker
-                      {...field}
-                      label={camelToSentenceCase(lspField.name)}
-                      renderInput={(props: TextFieldProps) => (
-                        <TextField
-                          {...props}
-                          fullWidth
-                          variant="standard"
-                          disabled={formState.isSubmitting}
-                          required={true}
-                          error={Boolean(fieldState.error?.message)}
-                          helperText={fieldState.error?.message}
-                        />
-                      )}
-                    />
-                  )}
-                />
-              </Grid>
-            );
-          } else if (
-            lspField.name === "fpl" ||
-            lspField.name === "priceIdentifier" ||
-            (lspField.name === "collateralToken" &&
-              (chainId === 1 || chainId === 137))
-          ) {
-            const label =
-              lspField.name !== "fpl"
-                ? `${camelToSentenceCase(lspField.name)} ${
-                    lspField.rules.required ? "*" : ""
-                  }`
-                : "Financial product *";
-
-            if (lspField.name === "collateralToken") {
-              lspField.options = collateralTokens
-                .filter((token) =>
-                  token.addresses.some(
-                    (address) =>
-                      (chainId === 1 && address.includes("etherscan")) ||
-                      (chainId === 137 && address.includes("polygonscan")),
-                  ),
-                )
-                .map((token) => token.currency);
-            }
-
-            return (
-              <Grid key={lspField.name} item xs={12} md={6}>
-                <Controller
-                  name={lspField.name as never}
-                  defaultValue=""
-                  control={control}
-                  rules={lspField.rules}
-                  render={({ field, fieldState, formState }) => (
-                    <FormControl
-                      fullWidth
-                      variant="standard"
-                      error={Boolean(fieldState.error?.message)}
-                    >
-                      <InputLabel id={`${lspField.name}-select-label`}>
-                        {label}
-                      </InputLabel>
-                      <Select
-                        labelId={`${lspField.name}-select-label`}
-                        id={`${lspField.name}-select`}
-                        label={label}
-                        disabled={formState.isSubmitting}
-                        required={Boolean(lspField.rules.required)}
-                        {...field}
-                      >
-                        {lspField.options!.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {lspField.name !== "fpl" ||
-                            option.includes("KPI Option")
-                              ? option
-                              : camelToSentenceCase(option)}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {Boolean(fieldState.error?.message) && (
-                        <FormHelperText>
-                          {fieldState.error?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            );
-          }
-
-          return (
-            <Grid key={lspField.name} item xs={12} md={6}>
-              <Controller
-                name={lspField.name as never}
-                defaultValue=""
-                control={control}
-                rules={lspField.rules}
-                render={({ field, fieldState, formState }) => (
-                  <BaseInput
+  const renderField = (lspField: FormField<LSPFormOptions>) => {
+    if (lspField.name === "expirationTimestamp") {
+      return (
+        <Grid key={lspField.name} item xs={12} md={6}>
+          <Controller
+            name={lspField.name as never}
+            defaultValue={new Date()}
+            control={control}
+            rules={lspField.rules}
+            render={({ field, fieldState, formState }) => (
+              <DateTimePicker
+                {...field}
+                label={camelToSentenceCase(lspField.name)}
+                renderInput={(props: TextFieldProps) => (
+                  <TextField
+                    {...props}
+                    fullWidth
+                    variant="standard"
                     disabled={formState.isSubmitting}
-                    customField={lspField}
-                    hookFormField={field}
-                    error={fieldState.error?.message || ""}
+                    required={true}
+                    error={Boolean(fieldState.error?.message)}
+                    helperText={fieldState.error?.message}
                   />
                 )}
               />
-            </Grid>
-          );
-        })}
+            )}
+          />
+        </Grid>
+      );
+    } else if (
+      lspField.name === "fpl" ||
+      lspField.name === "priceIdentifier" ||
+      (lspField.name === "collateralToken" &&
+        (chainId === 1 || chainId === 137))
+    ) {
+      const label =
+        lspField.name !== "fpl"
+          ? `${camelToSentenceCase(lspField.name)} ${
+              lspField.rules.required ? "*" : ""
+            }`
+          : "Financial product *";
+
+      if (lspField.name === "collateralToken") {
+        lspField.options = collateralTokens
+          .filter((token) =>
+            token.addresses.some(
+              (address) =>
+                (chainId === 1 && address.includes("etherscan")) ||
+                (chainId === 137 && address.includes("polygonscan")),
+            ),
+          )
+          .map((token) => token.currency);
+      }
+
+      return (
+        <Grid key={lspField.name} item xs={12} md={6}>
+          <Controller
+            name={lspField.name as never}
+            defaultValue=""
+            control={control}
+            rules={lspField.rules}
+            render={({ field, fieldState, formState }) => (
+              <FormControl
+                fullWidth
+                variant="standard"
+                error={Boolean(fieldState.error?.message)}
+              >
+                <InputLabel id={`${lspField.name}-select-label`}>
+                  {label}
+                </InputLabel>
+                <Select
+                  labelId={`${lspField.name}-select-label`}
+                  id={`${lspField.name}-select`}
+                  label={label}
+                  disabled={formState.isSubmitting}
+                  required={Boolean(lspField.rules.required)}
+                  {...field}
+                >
+                  {lspField.options!.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {lspField.name !== "fpl" || option.includes("KPI Option")
+                        ? option
+                        : camelToSentenceCase(option)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {Boolean(fieldState.error?.message) && (
+                  <FormHelperText>{fieldState.error?.message}</FormHelperText>
+                )}
+              </FormControl>
+            )}
+          />
+        </Grid>
+      );
+    }
+
+    return (
+      <Grid key={lspField.name} item xs={12} md={6}>
+        <Controller
+          name={lspField.name as never}
+          defaultValue=""
+          control={control}
+          rules={lspField.rules}
+          render={({ field, fieldState, formState }) => (
+            <BaseInput
+              disabled={formState.isSubmitting}
+              customField={lspField}
+              hookFormField={field}
+              error={fieldState.error?.message || ""}
+            />
+          )}
+        />
+      </Grid>
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid item xs={12}>
+          <Typography variant="h6">Mandatory Parameters</Typography>
+        </Grid>
+        {requiredLspFields.map(renderField)}
+        <Grid item xs={12}>
+          <Typography variant="h6">Optional Parameters</Typography>
+        </Grid>
+        {optionalLspFields.map(renderField)}
         <Grid
           item
           xs={12}
