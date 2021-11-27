@@ -9,14 +9,14 @@ export default async function mintLSPPair({
   amount,
   lspAddress,
 }: MintLSPPairOptions): Promise<any> {
-  const { toBN } = web3.utils;
+  const { toBN, toWei } = web3.utils;
 
   const account = (await web3.eth.getAccounts())[0];
 
   const contractParams = {
     from: account,
     gas: 12000000,
-    gasPrice: (gasPrice * 1000000000).toString(),
+    gasPrice: (Number(gasPrice) * 1000000000).toString(),
   };
 
   const lspContract = new web3.eth.Contract(
@@ -37,7 +37,7 @@ export default async function mintLSPPair({
     .collateralPerPair()
     .call();
 
-  const mintAmount = toBN(amount)
+  const mintAmount = toBN(toWei(amount))
     .mul(toBN(10).pow(toBN(18)))
     .div(toBN(collateralPerPair))
     .toString();

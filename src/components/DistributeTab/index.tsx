@@ -5,11 +5,13 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Divider,
   Typography,
 } from "@mui/material";
 
 import { AppContext } from "../../contexts/AppContext";
 import DistributeForm from "./DistributeForm";
+import FlowForm from "./FlowForm";
 import MintLSPPairForm from "./MintLSPPairForm";
 import MintSuperLSPForm from "./MintSuperLSPForm";
 
@@ -43,9 +45,11 @@ const DistributeTab: React.FC = () => {
       </Accordion>
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMore />}>
-          <Typography>Start flow</Typography>
+          <Typography>Distribute</Typography>
         </AccordionSummary>
         <AccordionDetails>
+          <FlowForm />
+          <Divider>OR</Divider>
           <DistributeForm />
         </AccordionDetails>
       </Accordion>

@@ -1,8 +1,6 @@
 import React from "react";
 
-import { Box } from "@mui/material";
-
-import { FPLOptions, LaunchOptions, LSPOptions } from "../../helpers/models";
+import { LaunchOptions } from "../../helpers/models";
 import FPLForm from "./FPLForm";
 import LSPForm from "./LSPForm";
 
@@ -23,44 +21,33 @@ const LaunchTab: React.FC = () => {
     setActiveStep(activeStep - 1);
   };
 
-  const saveLSPOptions = (options: LSPOptions): LaunchFormOptions => {
-    const opts = {
+  const saveFormOptions = (
+    options: Partial<LaunchFormOptions>,
+  ): LaunchFormOptions => {
+    const opts: LaunchFormOptions = {
       ...formOptions,
-      lspOptions: options,
-    };
-    setFormOptions(opts);
-    return opts;
-  };
-
-  const saveFPLOptions = ({
-    gasPrice,
-    ...options
-  }: FPLOptions & { gasPrice: number }): LaunchFormOptions => {
-    const opts = {
-      ...formOptions,
-      gasPrice,
-      fplOptions: options,
+      ...options,
     };
     setFormOptions(opts);
     return opts;
   };
 
   return (
-    <Box>
+    <React.Fragment>
       {activeStep === 0 ? (
         <LSPForm
-          lspOptions={formOptions.lspOptions}
-          saveLSPOptions={saveLSPOptions}
+          formOptions={formOptions}
+          saveFormOptions={saveFormOptions}
           handleNext={handleNext}
         />
       ) : (
         <FPLForm
-          fplOptions={formOptions.fplOptions}
-          saveFPLOptions={saveFPLOptions}
+          formOptions={formOptions}
+          saveFormOptions={saveFormOptions}
           handleBack={handleBack}
         />
       )}
-    </Box>
+    </React.Fragment>
   );
 };
 

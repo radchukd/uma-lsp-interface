@@ -19,14 +19,19 @@ import {
 } from "@uma/contracts-frontend";
 
 import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
-import { FPLOptions, FPLParams, LaunchData, LaunchOptions } from "./models";
+import { FPL, FPLParams, LaunchOptions } from "./models";
+import { parseCustomAncillaryData } from "./utils";
 
 const getFPLParams = (
-  { fpl, basePercentage, lowerBound, upperBound }: FPLOptions,
+  fpl: FPL,
+  basePercentage: string,
+  lowerBound: string,
+  upperBound: string,
   chainId: number,
 ): FPLParams => {
   switch (fpl) {
     case "BinaryOption":
+    case "KPI Option - Binary":
       return {
         address:
           getBinaryOptionLongShortPairFinancialProductLibraryAddress(chainId),
@@ -66,6 +71,7 @@ const getFPLParams = (
         contractParams: [upperBound, lowerBound],
       };
     case "Linear":
+    case "KPI Option - Linear":
       return {
         address: getLinearLongShortPairFinancialProductLibraryAddress(chainId),
         abi: getLinearLongShortPairFinancialProductLibraryAbi(),
@@ -85,48 +91,59 @@ export default async function launchLSP({
   web3,
   simulate,
   gasPrice,
-  lspOptions: {
-    pairName,
-    expirationTimestamp,
-    collateralPerPair,
-    priceIdentifier,
-    longSynthName,
-    longSynthSymbol,
-    shortSynthName,
-    shortSynthSymbol,
-    collateralToken,
-    customAncillaryData,
-    prepaidProposerReward,
-    optimisticOracleLivenessTime,
-    optimisticOracleProposerBond,
-  },
-  fplOptions,
-}: LaunchOptions): Promise<LaunchData> {
-  const { utf8ToHex, padRight } = web3.utils;
+  pairName,
+  expirationTimestamp,
+  collateralPerPair,
+  priceIdentifier,
+  longSynthName,
+  longSynthSymbol,
+  shortSynthName,
+  shortSynthSymbol,
+  collateralToken,
+  customAncillaryData,
+  prepaidProposerReward,
+  optimisticOracleLivenessTime,
+  optimisticOracleProposerBond,
+  fpl,
+  basePercentage,
+  lowerBound,
+  upperBound,
+}: LaunchOptions): Promise<string> {
+  const { utf8ToHex, padRight, toWei } = web3.utils;
 
   const account = (await web3.eth.getAccounts())[0];
   const chainId = await web3.eth.net.getId();
 
   // Get the final fee for the collateral type to use as default proposer bond.
-  const proposerBond = String(
-    optimisticOracleProposerBond.length
-      ? optimisticOracleProposerBond
-      : (await new web3.eth.Contract(
-          getStoreAbi(),
-          getStoreAddress(chainId),
-        ).methods
-          .computeFinalFee(collateralToken)
-          .call()) || "0",
-  );
+  const proposerBond =
+    (optimisticOracleProposerBond
+      ? toWei(optimisticOracleProposerBond)
+      : (
+          await new web3.eth.Contract(
+            getStoreAbi(),
+            getStoreAddress(chainId),
+          ).methods
+            .computeFinalFee(collateralToken)
+            .call()
+        )[0]) || "0";
 
-  const fplParams = getFPLParams(fplOptions, chainId);
+  const fplParams = getFPLParams(
+    fpl,
+    basePercentage,
+    lowerBound,
+    upperBound,
+    chainId,
+  );
+  const fplContractParamsInWei = fplParams.contractParams.map((param) =>
+    toWei(param),
+  );
 
   const lspParams = {
     /* string  */ pairName,
     /* uint64  */ expirationTimestamp: Math.ceil(
       expirationTimestamp.getTime() / 1000,
     ).toString(),
-    /* uint256 */ collateralPerPair,
+    /* uint256 */ collateralPerPair: toWei(collateralPerPair),
     /* bytes32 */ priceIdentifier: padRight(utf8ToHex(priceIdentifier), 64),
     /* string  */ longSynthName,
     /* string  */ longSynthSymbol,
@@ -134,21 +151,22 @@ export default async function launchLSP({
     /* string  */ shortSynthSymbol,
     /* address */ collateralToken,
     /* address */ financialProductLibrary: fplParams.address,
-    /* bytes   */ customAncillaryData: utf8ToHex(customAncillaryData),
-    /* uint256 */ prepaidProposerReward: prepaidProposerReward?.length
-      ? prepaidProposerReward
+    /* bytes   */ customAncillaryData: utf8ToHex(
+      parseCustomAncillaryData(customAncillaryData),
+    ),
+    /* uint256 */ prepaidProposerReward: prepaidProposerReward.length
+      ? toWei(prepaidProposerReward)
       : "0",
-    /* uint256 */ optimisticOracleLivenessTime:
-      optimisticOracleLivenessTime?.length
-        ? optimisticOracleLivenessTime
-        : "7200",
+    /* uint256 */ optimisticOracleLivenessTime: optimisticOracleLivenessTime
+      ? optimisticOracleLivenessTime.toString()
+      : "7200",
     /* uint256 */ optimisticOracleProposerBond: proposerBond,
   };
 
   const contractParams = {
     from: account,
     gas: 12000000,
-    gasPrice: (gasPrice * 1000000000).toString(),
+    gasPrice: (Number(gasPrice) * 1000000000).toString(),
   };
 
   console.log(
@@ -157,18 +175,13 @@ export default async function launchLSP({
         simulate,
         chainId,
         lspParams,
-        fplParams,
+        fplContractParamsInWei,
         contractParams,
       },
       null,
       2,
     ),
   );
-
-  const launchData = {
-    createLongShortPair: { address: "", transactionHash: "" },
-    setLongShortPairParameters: { transactionHash: "" },
-  };
 
   const lspCreator = new web3.eth.Contract(
     lspCreatorABI as any,
@@ -179,29 +192,20 @@ export default async function launchLSP({
   const address = await lspCreator.methods
     .createLongShortPair(lspParams)
     .call();
-  launchData.createLongShortPair.address = address;
 
   if (!simulate) {
-    const { transactionHash } = await lspCreator.methods
-      .createLongShortPair(lspParams)
+    await lspCreator.methods.createLongShortPair(lspParams).send();
+
+    const deployedFPL = new web3.eth.Contract(
+      fplParams.abi,
+      fplParams.address,
+      contractParams,
+    );
+
+    await deployedFPL.methods
+      .setLongShortPairParameters(address, ...fplContractParamsInWei)
       .send();
-    launchData.createLongShortPair.transactionHash = transactionHash;
   }
 
-  const deployedFPL = new web3.eth.Contract(
-    fplParams.abi,
-    fplParams.address,
-    contractParams,
-  );
-
-  if (!simulate) {
-    const { transactionHash } = await deployedFPL.methods
-      .setLongShortPairParameters(address, ...fplParams.contractParams)
-      .send();
-    launchData.setLongShortPairParameters.transactionHash = transactionHash;
-  }
-
-  console.log(launchData);
-
-  return launchData;
+  return address;
 }

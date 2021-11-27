@@ -8,12 +8,15 @@ export default async function launchSuperToken({
   tokenAddress,
   amount,
 }: LaunchSuperTokenOptions): Promise<any> {
+  const { toWei } = web3.utils;
+
   const account = (await web3.eth.getAccounts())[0];
+  const amountInWei = toWei(amount);
 
   const contractParams = {
     from: account,
     gas: 12000000,
-    gasPrice: (gasPrice * 1000000000).toString(),
+    gasPrice: (Number(gasPrice) * 1000000000).toString(),
   };
 
   const tokenInfo = await (sf.contracts as any).TokenInfo.at(tokenAddress);
@@ -50,10 +53,10 @@ export default async function launchSuperToken({
   );
 
   await underlyingTokenContract.methods
-    .approve(superToken.address, amount)
+    .approve(superToken.address, amountInWei)
     .send();
 
-  await superToken.upgrade(amount);
+  await superToken.upgrade(amountInWei);
 
   return superToken;
 }

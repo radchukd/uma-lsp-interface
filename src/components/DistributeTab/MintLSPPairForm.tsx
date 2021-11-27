@@ -3,11 +3,10 @@ import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 import {
-  Backdrop,
   Box,
   Button,
-  CircularProgress,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   Link,
@@ -42,10 +41,7 @@ const mintFields: Array<FormField<Omit<MintLSPPairOptions, "web3">>> = [
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
@@ -54,25 +50,15 @@ const mintFields: Array<FormField<Omit<MintLSPPairOptions, "web3">>> = [
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) => {
-        if (value === "") return true;
-
-        const num = parseInt(value);
-
-        if (num < 1 || num > 1000) {
-          return "Invalid number";
-        }
-
-        return true;
-      },
+      min: 1,
+      max: 1000,
     },
   },
 ];
 
 const MintLSPPairForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const { web3 } = React.useContext(AppContext);
-  const [isLoading, setLoading] = React.useState(true);
+  const { isLoading, web3, handleLoading } = React.useContext(AppContext);
   const [createdLSPs, setCreatedLSPs] = React.useState<Array<CreatedLSP>>([]);
   const { control, handleSubmit } = useForm<Omit<MintLSPPairOptions, "web3">>();
 
@@ -82,7 +68,8 @@ const MintLSPPairForm: React.FC = () => {
   }, [web3]);
 
   React.useEffect(() => {
-    if (createdLSPs.length) setLoading(false);
+    if (createdLSPs.length) handleLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createdLSPs]);
 
   const onSubmit: SubmitHandler<Omit<MintLSPPairOptions, "web3">> = async ({
@@ -93,7 +80,7 @@ const MintLSPPairForm: React.FC = () => {
     if (!web3) return;
 
     try {
-      setLoading(true);
+      handleLoading(true);
 
       await mintLSPPair({
         web3,
@@ -118,18 +105,12 @@ const MintLSPPairForm: React.FC = () => {
         autoHideDuration: 2500,
       });
     } finally {
-      setLoading(false);
+      handleLoading(false);
     }
   };
 
   return (
     <React.Fragment>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress />
-      </Backdrop>
       {!isLoading && !createdLSPs.length ? (
         <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
           You haven't launched any LSP tokens yet.{" "}
@@ -160,7 +141,11 @@ const MintLSPPairForm: React.FC = () => {
                       control={control}
                       rules={mintField.rules}
                       render={({ field, fieldState, formState }) => (
-                        <FormControl fullWidth variant="standard">
+                        <FormControl
+                          fullWidth
+                          variant="standard"
+                          error={Boolean(fieldState.error?.message)}
+                        >
                           <InputLabel id={`${mintField.name}-select-label`}>
                             {label}
                           </InputLabel>
@@ -178,6 +163,11 @@ const MintLSPPairForm: React.FC = () => {
                               </MenuItem>
                             ))}
                           </Select>
+                          {Boolean(fieldState.error?.message) && (
+                            <FormHelperText>
+                              {fieldState.error?.message}
+                            </FormHelperText>
+                          )}
                         </FormControl>
                       )}
                     />
@@ -194,13 +184,10 @@ const MintLSPPairForm: React.FC = () => {
                     rules={mintField.rules}
                     render={({ field, fieldState, formState }) => (
                       <BaseInput
-                        label={camelToSentenceCase(mintField.name)}
-                        description={mintField.description}
                         disabled={formState.isSubmitting}
-                        required={Boolean(mintField.rules.required)}
-                        type={mintField.type || "string"}
-                        error={fieldState.error?.message}
-                        field={field}
+                        customField={mintField}
+                        hookFormField={field}
+                        error={fieldState.error?.message || ""}
                       />
                     )}
                   />

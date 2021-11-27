@@ -22,10 +22,10 @@ const AppLayout: React.FC = ({ children }) => {
           sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}
         >
           <Backdrop
-            sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
             open={isLoading}
           >
-            <CircularProgress color="inherit" />
+            <CircularProgress color="primary" />
           </Backdrop>
           {children}
         </Paper>

@@ -11,15 +11,10 @@
 ## Links
 
 - [Hosted app](https://uma-lsp-interface.vercel.app)
-
 - [UMA](https://umaproject.org)
-
 - [Superfluid](https://www.superfluid.finance)
-
 - [Approved price identifiers](https://docs.umaproject.org/uma-tokenholders/approved-price-identifiers)
-
 - [Approved collateral tokens](https://docs.umaproject.org/uma-tokenholders/approved-collateral-currencies)
-
 - [Github repo](https://github.com/radchukd/uma-lsp-interface)
 
 ## Launch LSP
@@ -30,10 +25,9 @@
 
 Example parameters:
 
-- Network = Kovan
 - Pair Name = UMA $4-12 Range Token Pair August 2021
 - Expiration Timestamp = 5 Nov 2022
-- Collateral Per Pair = 250000000000000000
+- Collateral Per Pair = 0.25
 - Price Identifier = UMAUSD
 - Long Synth Name = UMA $4-12 Range Token August 2021
 - Long Synth Symbol = rtUMA-0821
@@ -45,9 +39,9 @@ Example parameters:
 - Prepaid Proposer Reward = "" (Empty)
 - Optimistic Oracle Liveness Time = "" (Empty)
 - Optimistic Oracle Proposer Bond = "" (Empty)
-- Lower Bound = 4000000000000000000
-- Upper Bound = 12000000000000000000
-- Gas price = 1
+- Lower Bound = 4
+- Upper Bound = 12
+- Gas Price = 1
 
 ## Distribute LSP
 
@@ -59,8 +53,8 @@ Example parameters:
 
 Example parameters:
 
-- Amount = 1000000000000000000
-- Gas price = 1
+- Amount = 1
+- Gas Price = 1
 
 ### 2. Mint Super LSP pair
 
@@ -71,15 +65,27 @@ Example parameters:
 Example parameters:
 
 - Token type = Long
-- Amount = 3000000000000000000
-- Gas price = 1
+- Amount = 3
+- Gas Price = 1
 
-### 3. Start flow
+### Distribute
 
-- Navigate to Distribute -> Start flow
+#### Create flow
+
+- Navigate to Distribute -> Distribute -> Create a Constant Flow Agreement "CFA"
 - Enter the super token, recipient and flow rate (tokens per second)
 - Sign 1 transaction
 
 Example parameters:
 
 - Flow rate = 385802469135
+
+#### Create pool
+
+- Navigate to Distribute -> Distribute -> Create a pool and distribute tokens
+- Enter the super token, amount of tokens to distribute and recipients
+- Sign 2+X transaction (Create pool, ? X give shares, distibute)
+
+Example parameters:
+
+- Amount = 1

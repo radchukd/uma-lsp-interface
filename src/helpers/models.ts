@@ -5,7 +5,7 @@ import SuperfluidSDK from "@superfluid-finance/js-sdk";
 
 export type FormField<Opts> = {
   name: keyof Opts;
-  description: string;
+  description?: string;
   rules: RegisterOptions;
   type?: string;
   options?: Array<string>;
@@ -18,16 +18,15 @@ export type FPL =
   | "Linear"
   | "RangeBond"
   | "SimpleSuccessToken"
-  | "SuccessToken";
+  | "SuccessToken"
+  | "KPI Option - Linear"
+  | "KPI Option - Binary";
 
-export type FPLOptions = {
-  fpl: FPL; // Name of the financial product library type your contract will use to calculate the payment at expiry.
-  basePercentage: string; // The percentage of collateral per pair used as the floor.
-  lowerBound: string; // Lower bound of a price range for certain financial product libraries.
-  upperBound: string; // Upper bound of a price range for certain financial product libraries.
-};
-
-export type LSPOptions = {
+export type LaunchOptions = {
+  web3: Web3;
+  simulate: boolean; // Boolean telling if the script should only simulate the transactions without sending them to the network.
+  gasPrice: string; // Gas price to use in GWEI.
+  // LSP options
   // Mandatory
   pairName: string; // The desired name of the token pair.
   expirationTimestamp: Date; // Timestamp that the contract will expire at.
@@ -43,30 +42,17 @@ export type LSPOptions = {
   prepaidProposerReward: string; // Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.
   optimisticOracleLivenessTime: string; // Custom liveness window for disputing optimistic oracle price proposals in seconds.
   optimisticOracleProposerBond: string; // Additional bond proposer must post with the optimistic oracle.
-};
-
-export type LaunchOptions = {
-  web3: Web3;
-  simulate: boolean; // Boolean telling if the script should only simulate the transactions without sending them to the network.
-  gasPrice: number; // Gas price to use in GWEI.
-  lspOptions: LSPOptions;
-  fplOptions: FPLOptions;
+  // FPL options
+  fpl: FPL; // Name of the financial product library type your contract will use to calculate the payment at expiry.
+  basePercentage: string; // The percentage of collateral per pair used as the floor.
+  lowerBound: string; // Lower bound of a price range for certain financial product libraries.
+  upperBound: string; // Upper bound of a price range for certain financial product libraries.
 };
 
 export type FPLParams = {
   address: string;
   abi: Array<any>;
   contractParams: Array<any>;
-};
-
-export type LaunchData = {
-  createLongShortPair: {
-    address: string | undefined;
-    transactionHash: string | undefined;
-  };
-  setLongShortPairParameters: {
-    transactionHash: string | undefined;
-  };
 };
 
 export type CreatedLSP = {
@@ -77,7 +63,7 @@ export type CreatedLSP = {
 
 export type MintLSPPairOptions = {
   web3: Web3;
-  gasPrice: number;
+  gasPrice: string;
   amount: string;
   lspAddress: string;
 };
@@ -85,12 +71,23 @@ export type MintLSPPairOptions = {
 export type LaunchSuperTokenOptions = {
   web3: Web3;
   sf: SuperfluidSDK.Framework;
-  gasPrice: number;
+  gasPrice: string;
   tokenAddress: string;
   amount: string;
 };
 
 export type DistributeOptions = {
+  token: string;
+  amount: string;
+  recipients: Array<IDARecipient>;
+};
+
+export type IDARecipient = {
+  address: string;
+  shares: string; // 1 - 100
+};
+
+export type FlowOptions = {
   token: string;
   recipient: string;
   flowRate: string;

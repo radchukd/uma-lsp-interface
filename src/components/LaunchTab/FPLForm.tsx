@@ -2,148 +2,237 @@ import { useSnackbar } from "notistack";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
-import {
-  Backdrop,
-  Button,
-  CircularProgress,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Button, Grid, Typography } from "@mui/material";
 
 import { AppContext } from "../../contexts/AppContext";
 import launchLSP from "../../helpers/launchLSP";
-import { FormField, FPLOptions } from "../../helpers/models";
-import { camelToSentenceCase } from "../../helpers/utils";
+import { FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
 import { LaunchFormOptions } from ".";
 
-const fplFields: Array<FormField<FPLOptions & { gasPrice: number }>> = [
-  {
-    name: "fpl",
-    description: "Financial library used to calculate the payout at expiry.",
-    rules: {
-      required: true,
-    },
-    options: [
-      //  "BinaryOption",
-      //  "CappedYieldDollar",
-      //  "CoveredCall",
-      //  "Linear",
-      "RangeBond",
-      //  "SimpleSuccessToken",
-      "SuccessToken",
-    ],
-  },
+export type FPLFormOptions = {
+  basePercentage: string;
+  lowerBound: string;
+  upperBound: string;
+  gasPrice: string;
+  customAncillaryData: string;
+  // Mandatory
+  Metric: string;
+  Endpoint: string;
+  Method: string;
+  Key: string;
+  Interval: string;
+  // Optional
+  Fallback: string;
+  Aggregation: string;
+  Rounding: string;
+  Scaling: string;
+  Unresolved: string;
+};
+
+const fplFields: Array<FormField<FPLFormOptions>> = [
   {
     name: "basePercentage",
     description: "Percentage of collateral per pair used as the floor.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "lowerBound",
     description:
       "Below the lower bound each range token is worth the number of collateral that is set using collateral per pair.",
+    type: "number",
     rules: {
       required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
+      min: 0,
     },
   },
   {
     name: "upperBound",
     description:
       "Above the upper bound, holders of the long token are entitled to a fixed, minimum number of collateral.",
-    rules: {
-      required: true,
-      validate: (value: any) =>
-        value === "" ||
-        Boolean(String(value).match(/^\d+$/)) ||
-        "Invalid number",
-    },
-  },
-  {
-    name: "gasPrice",
-    description: "Gas price to use in GWEI.",
     type: "number",
     rules: {
       required: true,
-      validate: (value: any) => {
-        if (value === "") return true;
-
-        const num = parseInt(value);
-
-        if (num < 1 || num > 1000) {
-          return "Invalid number";
-        }
-
-        return true;
-      },
+      min: 0,
     },
   },
 ];
 
+const requiredCustomAncillaryDataFields: Array<FormField<FPLFormOptions>> = [
+  {
+    name: "Metric",
+    description:
+      "Short description reflecting the metric and units to be measured.",
+    rules: {
+      required: true,
+    },
+  },
+  {
+    name: "Endpoint",
+    description:
+      "Link to data endpoint that should return the Metric at request timestamp.",
+    rules: {
+      required: true,
+    },
+  },
+  {
+    name: "Method",
+    description:
+      "Link to a descriptive source covering the objective and methodology for calculating a particular metric.",
+    rules: {
+      required: true,
+    },
+  },
+  {
+    name: "Key",
+    description:
+      "Which key value from the Endpoint response should be used by voters for further processing of the price request.",
+    rules: {
+      required: true,
+    },
+  },
+  {
+    name: "Interval",
+    description:
+      "This describes how request timestamps for pricing queries should be rounded and what is the granularity of historical data update frequency.",
+    rules: {
+      required: true,
+    },
+  },
+];
+
+const optionalCustomAncillaryDataFields: Array<FormField<FPLFormOptions>> = [
+  {
+    name: "customAncillaryData",
+    description:
+      "Custom ancillary data to be passed along with the price request.",
+    rules: {
+      required: false,
+    },
+  },
+  {
+    name: "Fallback",
+    description:
+      "In the event of the end-point not working or reporting false outcomes, a fallback ensures that UMA token holders can arrive at the proper result.",
+    rules: {},
+  },
+  {
+    name: "Aggregation",
+    description:
+      "In case any time series data processing is required this describes processing method used (e.g. calculating TWAP, finding peak value, etc.) and also sets the start timestamp for such aggregation.",
+    rules: {},
+  },
+  {
+    name: "Rounding",
+    description:
+      "This is integer number defining how many digits should be left to the right of decimal delimiter after rounding.",
+    rules: {},
+  },
+  {
+    name: "Scaling",
+    description:
+      "This is integer number defining power of 10 scaling to be applied after rounding.",
+    rules: {},
+  },
+  {
+    name: "Unresolved",
+    description:
+      "This is numeric value that voters should return for unresolvable price request (defaults to zero if omitted).",
+    rules: {},
+  },
+];
+
+const gasPriceField: FormField<FPLFormOptions> = {
+  name: "gasPrice",
+  description: "Gas price to use in GWEI.",
+  type: "number",
+  rules: {
+    required: true,
+    min: 1,
+    max: 1000,
+  },
+};
+
 interface IFPLForm {
-  fplOptions: FPLOptions;
-  saveFPLOptions: (
-    options: FPLOptions & { gasPrice: number },
-  ) => LaunchFormOptions;
+  formOptions: LaunchFormOptions;
+  saveFormOptions: (options: Partial<LaunchFormOptions>) => LaunchFormOptions;
   handleBack: () => void;
 }
 
 const FPLForm: React.FC<IFPLForm> = ({
-  fplOptions,
-  saveFPLOptions,
+  formOptions,
+  saveFormOptions,
   handleBack,
 }) => {
+  const { fpl } = formOptions;
+  const isKPIOption = fpl.startsWith("KPI Option");
   const { enqueueSnackbar } = useSnackbar();
-  const { web3 } = React.useContext(AppContext);
-  const [isLoading, setLoading] = React.useState(false);
-  const { control, handleSubmit, watch } = useForm<
-    FPLOptions & { gasPrice: number }
-  >({
-    defaultValues: { ...fplOptions, gasPrice: 1 },
+  const { web3, handleLoading } = React.useContext(AppContext);
+  const { control, handleSubmit, getValues } = useForm<FPLFormOptions>({
+    defaultValues: {
+      ...(formOptions as unknown as FPLFormOptions),
+      ...(formOptions.customAncillaryData?.length
+        ? JSON.parse(formOptions.customAncillaryData)
+        : ({} as any)),
+    },
   });
 
-  const onSubmit: SubmitHandler<FPLOptions & { gasPrice: number }> = async (
-    data,
-    event,
-  ) => {
+  const prepareFormOptions = ({
+    Metric,
+    Endpoint,
+    Method,
+    Key,
+    Interval,
+    Fallback,
+    Aggregation,
+    Scaling,
+    Unresolved,
+    ...data
+  }: FPLFormOptions): Partial<LaunchFormOptions> => ({
+    ...data,
+    customAncillaryData: JSON.stringify({
+      Metric,
+      Endpoint,
+      Method,
+      Key,
+      Interval,
+      Fallback,
+      Aggregation,
+      Scaling,
+      Unresolved,
+    }),
+  });
+
+  const onBackClick = () => {
+    saveFormOptions(prepareFormOptions(getValues()));
+    handleBack();
+  };
+
+  const onSubmit: SubmitHandler<FPLFormOptions> = async (data, event) => {
     const submitEvent = (
       (event?.nativeEvent as SubmitEvent).submitter?.attributes as NamedNodeMap
     ).getNamedItem("value")?.value;
 
     const simulate = submitEvent === "simulate";
-    const formOptions = saveFPLOptions(data);
 
-    if (submitEvent === "back") {
-      handleBack();
-      return;
-    }
+    const launchOptions = saveFormOptions(prepareFormOptions(data));
 
     if (!web3) return;
 
     try {
-      setLoading(true);
+      handleLoading(true);
 
-      const launchData = await launchLSP({ web3, simulate, ...formOptions });
+      const address = await launchLSP({
+        web3,
+        simulate,
+        ...launchOptions,
+      });
 
-      const message = simulate
-        ? `Expected address: ${launchData.createLongShortPair.address}`
-        : `Transaction hash: ${launchData.createLongShortPair.transactionHash}`;
-
-      enqueueSnackbar(message, {
+      enqueueSnackbar(`LSP address: ${address}`, {
         variant: "success",
         anchorOrigin: { horizontal: "right", vertical: "top" },
         autoHideDuration: 2500,
@@ -159,117 +248,80 @@ const FPLForm: React.FC<IFPLForm> = ({
         autoHideDuration: 2500,
       });
     } finally {
-      setLoading(false);
+      handleLoading(false);
     }
   };
 
-  const currentFPLValue = watch("fpl");
-
-  const specificFPLFields = React.useMemo(
-    () =>
-      fplFields.filter((fplField) => {
-        if (fplField.name === "fpl" || fplField.name === "gasPrice") {
-          return true;
-        } else if (
-          (currentFPLValue === "BinaryOption" ||
-            currentFPLValue === "CappedYieldDollar" ||
-            currentFPLValue === "CoveredCall" ||
-            currentFPLValue === "SimpleSuccessToken") &&
-          fplField.name === "lowerBound"
-        ) {
-          return true;
-        } else if (
-          (currentFPLValue === "RangeBond" || currentFPLValue === "Linear") &&
-          (fplField.name === "lowerBound" || fplField.name === "upperBound")
-        ) {
-          return true;
-        } else if (
-          currentFPLValue === "SuccessToken" &&
-          (fplField.name === "lowerBound" || fplField.name === "basePercentage")
-        ) {
-          return true;
-        }
-        return false;
-      }),
-    [currentFPLValue],
-  );
+  const renderField = (fplField: FormField<FPLFormOptions>) => {
+    return (
+      <Grid key={fplField.name} item xs={12} md={6}>
+        <Controller
+          name={fplField.name as never}
+          defaultValue=""
+          control={control}
+          rules={fplField.rules}
+          render={({ field, fieldState, formState }) => (
+            <BaseInput
+              disabled={formState.isSubmitting}
+              customField={fplField}
+              hookFormField={field}
+              error={fieldState.error?.message || ""}
+            />
+          )}
+        />
+      </Grid>
+    );
+  };
 
   return (
     <React.Fragment>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress />
-      </Backdrop>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
-          FPL parameters
-        </Typography>
-        <Grid container spacing={3}>
-          {specificFPLFields.map((fplField) => {
-            if (fplField.name === "fpl") {
-              const label = "Financial product *";
-
-              return (
-                <Grid key={fplField.name} item xs={12} md={6}>
-                  <Controller
-                    name={fplField.name as never}
-                    defaultValue=""
-                    control={control}
-                    rules={fplField.rules}
-                    render={({ field, fieldState, formState }) => (
-                      <FormControl fullWidth variant="standard">
-                        <InputLabel id={`${fplField.name}-select-label`}>
-                          {label}
-                        </InputLabel>
-                        <Select
-                          labelId={`${fplField.name}-select-label`}
-                          id={`${fplField.name}-select`}
-                          label={label}
-                          disabled={formState.isSubmitting}
-                          required={Boolean(fplField.rules.required)}
-                          {...field}
-                        >
-                          {fplField.options!.map((option) => (
-                            <MenuItem key={option} value={option}>
-                              {fplField.name === "fpl"
-                                ? camelToSentenceCase(option)
-                                : option}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    )}
-                  />
-                </Grid>
-              );
-            }
-
-            return (
-              <Grid key={fplField.name} item xs={12} md={6}>
-                <Controller
-                  name={fplField.name as never}
-                  defaultValue=""
-                  control={control}
-                  rules={fplField.rules}
-                  render={({ field, fieldState, formState }) => (
-                    <BaseInput
-                      label={camelToSentenceCase(fplField.name)}
-                      description={fplField.description}
-                      disabled={formState.isSubmitting}
-                      required={Boolean(fplField.rules.required)}
-                      type={fplField.type || "string"}
-                      error={fieldState.error?.message}
-                      field={field}
-                    />
-                  )}
-                />
+        <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="h6">FPL parameters</Typography>
+          </Grid>
+          {fplFields
+            .filter((fplField) => {
+              if (fplField.name === "upperBound") {
+                return (
+                  fpl === "RangeBond" ||
+                  fpl === "Linear" ||
+                  fpl === "KPI Option - Linear"
+                );
+              } else if (fplField.name === "basePercentage") {
+                return fpl === "SuccessToken";
+              }
+              return true; // lowerBound
+            })
+            .map(renderField)}
+          {isKPIOption && (
+            <React.Fragment>
+              <Grid item xs={12}>
+                <Typography variant="h6">
+                  Mandatory Ancillary Data Parameters
+                </Typography>
               </Grid>
-            );
-          })}
+              {requiredCustomAncillaryDataFields.map(renderField)}
+            </React.Fragment>
+          )}
+          <Grid item xs={12}>
+            <Typography variant="h6">
+              Optional Ancillary Data Parameters
+            </Typography>
+          </Grid>
+          {optionalCustomAncillaryDataFields
+            .filter((fplField) =>
+              fplField.name === "customAncillaryData"
+                ? !isKPIOption
+                : isKPIOption,
+            )
+            .map(renderField)}
+          <Grid item xs={12}>
+            <Typography variant="h6">Gas Price</Typography>
+          </Grid>
+          {renderField(gasPriceField)}
           <Grid item xs={12} container alignItems="center">
-            <Button type="submit" variant="contained" value="back">
+            <Button type="button" onClick={onBackClick} variant="contained">
               Back
             </Button>
           </Grid>
