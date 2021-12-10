@@ -154,7 +154,7 @@ export default async function launchLSP({
     /* bytes   */ customAncillaryData: utf8ToHex(
       parseCustomAncillaryData(customAncillaryData),
     ),
-    /* uint256 */ prepaidProposerReward: prepaidProposerReward.length
+    /* uint256 */ prepaidProposerReward: prepaidProposerReward?.length
       ? toWei(prepaidProposerReward)
       : "0",
     /* uint256 */ optimisticOracleLivenessTime: optimisticOracleLivenessTime

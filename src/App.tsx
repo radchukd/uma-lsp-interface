@@ -1,6 +1,10 @@
 import React from "react";
 
-import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
+import Box from "@mui/material/Box";
+import useTheme from "@mui/material/styles/useTheme";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import DistributeTab from "./components/DistributeTab";
 import Header from "./components/Header";

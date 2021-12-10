@@ -1,27 +1,24 @@
+import { endOfToday, isAfter } from "date-fns";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 import DateTimePicker from "@mui/lab/DateTimePicker";
-import {
-  Button,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  TextFieldProps,
-  Typography,
-} from "@mui/material";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import FormHelperText from "@mui/material/FormHelperText";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import TextField, { TextFieldProps } from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
 import { collateralTokens, priceIdentifiers } from "../../helpers/constants";
 import { FormField, FPL } from "../../helpers/models";
 import { camelToSentenceCase } from "../../helpers/utils";
 import BaseInput from "../BaseInput";
-import { LaunchFormOptions } from ".";
-import { isAfter, endOfToday } from "date-fns";
+import { LaunchFormOptions } from "./";
 
 export type LSPFormOptions = {
   pairName: string;
@@ -226,7 +223,6 @@ const LSPForm: React.FC<ILSPForm> = ({
         <Grid key={lspField.name} item xs={12} md={6}>
           <Controller
             name={lspField.name as never}
-            defaultValue={new Date()}
             control={control}
             rules={lspField.rules}
             render={({ field, fieldState, formState }) => (
@@ -278,7 +274,6 @@ const LSPForm: React.FC<ILSPForm> = ({
         <Grid key={lspField.name} item xs={12} md={6}>
           <Controller
             name={lspField.name as never}
-            defaultValue=""
             control={control}
             rules={lspField.rules}
             render={({ field, fieldState, formState }) => (
@@ -320,14 +315,13 @@ const LSPForm: React.FC<ILSPForm> = ({
       <Grid key={lspField.name} item xs={12} md={6}>
         <Controller
           name={lspField.name as never}
-          defaultValue=""
           control={control}
           rules={lspField.rules}
           render={({ field, fieldState, formState }) => (
             <BaseInput
               disabled={formState.isSubmitting}
               customField={lspField}
-              hookFormField={field}
+              hookFormField={field as any}
               error={fieldState.error?.message || ""}
             />
           )}

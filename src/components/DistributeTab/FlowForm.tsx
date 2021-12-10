@@ -1,12 +1,16 @@
-import { useSnackbar } from "notistack";
+import { OptionsObject, useSnackbar } from "notistack";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
-import { Box, Button, Grid, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
 import { FlowOptions, FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
+import BaseSnackbar from "../BaseSnackbar";
 
 const flowFields: Array<FormField<FlowOptions>> = [
   {
@@ -37,7 +41,13 @@ const flowFields: Array<FormField<FlowOptions>> = [
 const FlowForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { sf, userAddress, handleLoading } = React.useContext(AppContext);
-  const { control, handleSubmit } = useForm();
+  const { control, handleSubmit } = useForm<FlowOptions>({
+    defaultValues: {
+      token: "",
+      recipient: "",
+      flowRate: "",
+    },
+  });
 
   const onSubmit: SubmitHandler<FlowOptions> = async ({
     token,
@@ -46,6 +56,13 @@ const FlowForm: React.FC = () => {
   }) => {
     if (!sf || !userAddress) return;
 
+    const snackbarOptions: Partial<OptionsObject> = {
+      anchorOrigin: { horizontal: "right", vertical: "top" },
+      autoHideDuration: 60000,
+      persist: true,
+      preventDuplicate: true,
+    };
+
     try {
       handleLoading(true);
 
@@ -53,20 +70,33 @@ const FlowForm: React.FC = () => {
         .user({ address: userAddress, token })
         .flow({ recipient, flowRate });
 
-      enqueueSnackbar(`Flow was created`, {
-        variant: "success",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "flow-success",
+        content: (
+          <BaseSnackbar
+            key="flow-success"
+            message="Flow was created"
+            variant="success"
+          />
+        ),
       });
     } catch (e) {
       console.log(e);
 
       const message = (e as any).message || (e as Error).toString();
 
-      enqueueSnackbar(message, {
-        variant: "error",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "flow-error",
+        content: (
+          <BaseSnackbar
+            key="flow-error"
+            message="An error has occured"
+            details={message}
+            variant="error"
+          />
+        ),
       });
     } finally {
       handleLoading(false);
@@ -90,14 +120,13 @@ const FlowForm: React.FC = () => {
               <Grid key={flowField.name} item xs={12} md={6}>
                 <Controller
                   name={flowField.name as never}
-                  defaultValue=""
                   control={control}
                   rules={flowField.rules}
                   render={({ field, fieldState, formState }) => (
                     <BaseInput
                       disabled={formState.isSubmitting}
                       customField={flowField}
-                      hookFormField={field}
+                      hookFormField={field as any}
                       error={fieldState.error?.message || ""}
                     />
                   )}

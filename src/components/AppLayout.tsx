@@ -1,12 +1,10 @@
 import React from "react";
 
-import {
-  Backdrop,
-  CircularProgress,
-  Container,
-  CssBaseline,
-  Paper,
-} from "@mui/material";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+import Container from "@mui/material/Container";
+import CssBaseline from "@mui/material/CssBaseline";
+import Paper from "@mui/material/Paper";
 
 import { AppContext } from "../contexts/AppContext";
 

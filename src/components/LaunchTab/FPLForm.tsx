@@ -1,14 +1,17 @@
-import { useSnackbar } from "notistack";
+import { OptionsObject, useSnackbar } from "notistack";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
-import { Button, Grid, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
 import launchLSP from "../../helpers/launchLSP";
 import { FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
-import { LaunchFormOptions } from ".";
+import BaseSnackbar from "../BaseSnackbar";
+import { LaunchFormOptions } from "./";
 
 export type FPLFormOptions = {
   basePercentage: string;
@@ -223,6 +226,13 @@ const FPLForm: React.FC<IFPLForm> = ({
 
     if (!web3) return;
 
+    const snackbarOptions: Partial<OptionsObject> = {
+      anchorOrigin: { horizontal: "right", vertical: "top" },
+      autoHideDuration: 60000,
+      persist: true,
+      preventDuplicate: true,
+    };
+
     try {
       handleLoading(true);
 
@@ -232,20 +242,33 @@ const FPLForm: React.FC<IFPLForm> = ({
         ...launchOptions,
       });
 
-      enqueueSnackbar(`LSP address: ${address}`, {
-        variant: "success",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "launch-success",
+        content: (
+          <BaseSnackbar
+            key="launch-success"
+            message={`LSP address: ${address}`}
+            variant="success"
+          />
+        ),
       });
     } catch (e) {
       console.log(e);
 
       const message = (e as any).message || (e as Error).toString();
 
-      enqueueSnackbar(message, {
-        variant: "error",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "launch-error",
+        content: (
+          <BaseSnackbar
+            key="launch-error"
+            message="An error has occured"
+            details={message}
+            variant="error"
+          />
+        ),
       });
     } finally {
       handleLoading(false);
@@ -257,14 +280,13 @@ const FPLForm: React.FC<IFPLForm> = ({
       <Grid key={fplField.name} item xs={12} md={6}>
         <Controller
           name={fplField.name as never}
-          defaultValue=""
           control={control}
           rules={fplField.rules}
           render={({ field, fieldState, formState }) => (
             <BaseInput
               disabled={formState.isSubmitting}
               customField={fplField}
-              hookFormField={field}
+              hookFormField={field as any}
               error={fieldState.error?.message || ""}
             />
           )}

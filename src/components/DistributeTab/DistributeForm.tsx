@@ -1,4 +1,4 @@
-import { useSnackbar } from "notistack";
+import { OptionsObject, useSnackbar } from "notistack";
 import React from "react";
 import {
   Controller,
@@ -7,12 +7,17 @@ import {
   useForm,
 } from "react-hook-form";
 
-import { Delete } from "@mui/icons-material";
-import { Box, Button, Grid, IconButton, Typography } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
 import { DistributeOptions, FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
+import BaseSnackbar from "../BaseSnackbar";
 
 const distributeFields: Array<FormField<DistributeOptions>> = [
   {
@@ -36,7 +41,13 @@ const distributeFields: Array<FormField<DistributeOptions>> = [
 const DistributeForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { web3, sf, userAddress, handleLoading } = React.useContext(AppContext);
-  const { control, handleSubmit } = useForm<DistributeOptions>();
+  const { control, handleSubmit } = useForm<DistributeOptions>({
+    defaultValues: {
+      token: "",
+      amount: "",
+      recipients: [],
+    },
+  });
   const {
     fields: recipientFields,
     append,
@@ -61,6 +72,13 @@ const DistributeForm: React.FC = () => {
       ) > 100
     )
       return;
+
+    const snackbarOptions: Partial<OptionsObject> = {
+      anchorOrigin: { horizontal: "right", vertical: "top" },
+      autoHideDuration: 60000,
+      persist: true,
+      preventDuplicate: true,
+    };
 
     try {
       handleLoading(true);
@@ -89,20 +107,33 @@ const DistributeForm: React.FC = () => {
         amount: toBN(amount).mul(toBN(10).pow(toBN(18))),
       });
 
-      enqueueSnackbar(`Tokens were distributed`, {
-        variant: "success",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "distribute-success",
+        content: (
+          <BaseSnackbar
+            key="distribute-success"
+            message="Tokens were distributed"
+            variant="success"
+          />
+        ),
       });
     } catch (e) {
       console.log(e);
 
       const message = (e as any).message || (e as Error).toString();
 
-      enqueueSnackbar(message, {
-        variant: "error",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "distribute-error",
+        content: (
+          <BaseSnackbar
+            key="distribute-error"
+            message="An error has occured"
+            details={message}
+            variant="error"
+          />
+        ),
       });
     } finally {
       handleLoading(false);
@@ -125,14 +156,13 @@ const DistributeForm: React.FC = () => {
             <Grid key={flowField.name} item xs={12} md={6}>
               <Controller
                 name={flowField.name as never}
-                defaultValue=""
                 control={control}
                 rules={flowField.rules}
                 render={({ field, fieldState, formState }) => (
                   <BaseInput
                     disabled={formState.isSubmitting}
                     customField={flowField}
-                    hookFormField={field}
+                    hookFormField={field as any}
                     error={fieldState.error?.message || ""}
                   />
                 )}
@@ -159,7 +189,7 @@ const DistributeForm: React.FC = () => {
                       name: "address",
                       rules: { required: true },
                     }}
-                    hookFormField={field}
+                    hookFormField={field as any}
                     error={fieldState.error?.message || ""}
                     fullWidth={false}
                   />
@@ -179,14 +209,14 @@ const DistributeForm: React.FC = () => {
                       type: "number",
                       rules: { min: 0, max: 100, required: true },
                     }}
-                    hookFormField={field}
+                    hookFormField={field as any}
                     error={fieldState.error?.message || ""}
                     fullWidth={false}
                   />
                 )}
               />
               <IconButton onClick={() => remove(index)}>
-                <Delete />
+                <DeleteIcon />
               </IconButton>
             </Grid>
           ))}

@@ -2,20 +2,18 @@ import React from "react";
 
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
-import {
-  Box,
-  Button,
-  Divider,
-  FormControl,
-  IconButton,
-  InputLabel,
-  Link,
-  MenuItem,
-  Select,
-  Tooltip,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
+import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import Link from "@mui/material/Link";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import useTheme from "@mui/material/styles/useTheme";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../contexts/AppContext";
 import { ColorModeContext } from "../contexts/ColorModeContext";

@@ -3,7 +3,7 @@ import { API as OnboardAPI } from "bnc-onboard/dist/src/interfaces";
 import React from "react";
 import Web3 from "web3";
 
-import { useTheme } from "@mui/material";
+import useTheme from "@mui/material/styles/useTheme";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 
 type AppContextType = {

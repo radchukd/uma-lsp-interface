@@ -1,19 +1,17 @@
-import { useSnackbar } from "notistack";
+import { OptionsObject, useSnackbar } from "notistack";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
-import {
-  Box,
-  Button,
-  FormControl,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  Link,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import FormHelperText from "@mui/material/FormHelperText";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import Link from "@mui/material/Link";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
 import getCreatedLSPs from "../../helpers/getCreatedLSPs";
@@ -25,6 +23,7 @@ import {
 } from "../../helpers/models";
 import { camelToSentenceCase } from "../../helpers/utils";
 import BaseInput from "../BaseInput";
+import BaseSnackbar from "../BaseSnackbar";
 
 const mintFields: Array<FormField<Omit<MintLSPPairOptions, "web3">>> = [
   {
@@ -60,7 +59,13 @@ const MintLSPPairForm: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isLoading, web3, handleLoading } = React.useContext(AppContext);
   const [createdLSPs, setCreatedLSPs] = React.useState<Array<CreatedLSP>>([]);
-  const { control, handleSubmit } = useForm<Omit<MintLSPPairOptions, "web3">>();
+  const { control, handleSubmit } = useForm<Omit<MintLSPPairOptions, "web3">>({
+    defaultValues: {
+      lspAddress: "",
+      amount: "1",
+      gasPrice: "1",
+    },
+  });
 
   React.useEffect(() => {
     if (web3) getCreatedLSPs(web3).then(setCreatedLSPs);
@@ -79,6 +84,13 @@ const MintLSPPairForm: React.FC = () => {
   }) => {
     if (!web3) return;
 
+    const snackbarOptions: Partial<OptionsObject> = {
+      anchorOrigin: { horizontal: "right", vertical: "top" },
+      autoHideDuration: 60000,
+      persist: true,
+      preventDuplicate: true,
+    };
+
     try {
       handleLoading(true);
 
@@ -89,20 +101,33 @@ const MintLSPPairForm: React.FC = () => {
         lspAddress,
       });
 
-      enqueueSnackbar(`Minted ${amount} token(s)`, {
-        variant: "success",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "mint-success",
+        content: (
+          <BaseSnackbar
+            key="mint-success"
+            message={`Minted ${amount} token(s)`}
+            variant="success"
+          />
+        ),
       });
     } catch (e) {
       console.log(e);
 
       const message = (e as any).message || (e as Error).toString();
 
-      enqueueSnackbar(message, {
-        variant: "error",
-        anchorOrigin: { horizontal: "right", vertical: "top" },
-        autoHideDuration: 2500,
+      enqueueSnackbar("", {
+        ...snackbarOptions,
+        key: "flow-error",
+        content: (
+          <BaseSnackbar
+            key="flow-error"
+            message="An error has occured"
+            details={message}
+            variant="error"
+          />
+        ),
       });
     } finally {
       handleLoading(false);
@@ -137,7 +162,6 @@ const MintLSPPairForm: React.FC = () => {
                   <Grid key={mintField.name} item xs={12} md={6}>
                     <Controller
                       name={mintField.name as never}
-                      defaultValue=""
                       control={control}
                       rules={mintField.rules}
                       render={({ field, fieldState, formState }) => (
@@ -179,14 +203,13 @@ const MintLSPPairForm: React.FC = () => {
                 <Grid key={mintField.name} item xs={12} md={6}>
                   <Controller
                     name={mintField.name as never}
-                    defaultValue=""
                     control={control}
                     rules={mintField.rules}
                     render={({ field, fieldState, formState }) => (
                       <BaseInput
                         disabled={formState.isSubmitting}
                         customField={mintField}
-                        hookFormField={field}
+                        hookFormField={field as any}
                         error={fieldState.error?.message || ""}
                       />
                     )}

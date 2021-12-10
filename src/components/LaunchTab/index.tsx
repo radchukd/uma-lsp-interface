@@ -7,9 +7,26 @@ import LSPForm from "./LSPForm";
 export type LaunchFormOptions = Omit<Omit<LaunchOptions, "web3">, "simulate">;
 
 const LaunchTab: React.FC = () => {
-  const [formOptions, setFormOptions] = React.useState<LaunchFormOptions>(
-    {} as LaunchFormOptions,
-  );
+  const [formOptions, setFormOptions] = React.useState<LaunchFormOptions>({
+    pairName: "",
+    expirationTimestamp: new Date(),
+    collateralPerPair: "",
+    priceIdentifier: "",
+    longSynthName: "",
+    longSynthSymbol: "",
+    shortSynthName: "",
+    shortSynthSymbol: "",
+    collateralToken: "",
+    customAncillaryData: "",
+    prepaidProposerReward: "",
+    optimisticOracleLivenessTime: "",
+    optimisticOracleProposerBond: "",
+    fpl: "" as any,
+    basePercentage: "",
+    lowerBound: "",
+    upperBound: "",
+    gasPrice: "",
+  });
 
   const [activeStep, setActiveStep] = React.useState<number>(0);
 

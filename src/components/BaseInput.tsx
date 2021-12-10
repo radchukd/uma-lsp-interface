@@ -1,8 +1,11 @@
 import React from "react";
 import { ControllerRenderProps } from "react-hook-form";
 
-import { Info } from "@mui/icons-material";
-import { Box, TextField, Tooltip } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+
 import { FormField } from "../helpers/models";
 import { camelToSentenceCase } from "../helpers/utils";
 
@@ -47,7 +50,7 @@ const BaseInput: React.FC<IBaseInput> = ({
         />
         {customField.description && (
           <Tooltip title={customField.description} placement="top">
-            <Info />
+            <InfoIcon />
           </Tooltip>
         )}
       </Box>
