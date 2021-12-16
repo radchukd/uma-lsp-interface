@@ -220,7 +220,7 @@ const LSPForm: React.FC<ILSPForm> = ({
   const renderField = (lspField: FormField<LSPFormOptions>) => {
     if (lspField.name === "expirationTimestamp") {
       return (
-        <Grid key={lspField.name} item xs={12} md={6}>
+        <Grid key={lspField.name} item xs={12} sm={6}>
           <Controller
             name={lspField.name as never}
             control={control}
@@ -271,7 +271,7 @@ const LSPForm: React.FC<ILSPForm> = ({
       }
 
       return (
-        <Grid key={lspField.name} item xs={12} md={6}>
+        <Grid key={lspField.name} item xs={12} sm={6}>
           <Controller
             name={lspField.name as never}
             control={control}
@@ -312,7 +312,8 @@ const LSPForm: React.FC<ILSPForm> = ({
     }
 
     return (
-      <Grid key={lspField.name} item xs={12} md={6}>
+    return (
+      <Grid key={lspField.name} item xs={12} sm={6}>
         <Controller
           name={lspField.name as never}
           control={control}

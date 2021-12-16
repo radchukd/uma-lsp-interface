@@ -187,7 +187,7 @@ const MintSuperLSPForm: React.FC = () => {
                   );
 
                 return (
-                  <Grid key={mintField.name} item xs={12} md={6}>
+                  <Grid key={mintField.name} item xs={12} sm={6}>
                     <Controller
                       name={mintField.name as never}
                       control={control}
@@ -228,7 +228,7 @@ const MintSuperLSPForm: React.FC = () => {
               }
 
               return (
-                <Grid key={mintField.name} item xs={12} md={6}>
+                <Grid key={mintField.name} item xs={12} sm={6}>
                   <Controller
                     name={mintField.name as never}
                     control={control}

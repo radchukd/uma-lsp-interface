@@ -277,7 +277,7 @@ const FPLForm: React.FC<IFPLForm> = ({
 
   const renderField = (fplField: FormField<FPLFormOptions>) => {
     return (
-      <Grid key={fplField.name} item xs={12} md={6}>
+      <Grid key={fplField.name} item xs={12} sm={6}>
         <Controller
           name={fplField.name as never}
           control={control}

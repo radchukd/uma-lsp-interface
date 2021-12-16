@@ -117,7 +117,7 @@ const FlowForm: React.FC = () => {
         <Grid container spacing={3}>
           {flowFields.map((flowField) => {
             return (
-              <Grid key={flowField.name} item xs={12} md={6}>
+              <Grid key={flowField.name} item xs={12} sm={6}>
                 <Controller
                   name={flowField.name as never}
                   control={control}
