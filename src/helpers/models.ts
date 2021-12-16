@@ -39,9 +39,10 @@ export type LaunchOptions = {
   collateralToken: string; // Approved collateral currency to be used.
   // Optional
   customAncillaryData: string; // Custom ancillary data to be passed along with the price request
-  prepaidProposerReward: string; // Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.
+  proposerReward: string; // Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.
   optimisticOracleLivenessTime: string; // Custom liveness window for disputing optimistic oracle price proposals in seconds.
   optimisticOracleProposerBond: string; // Additional bond proposer must post with the optimistic oracle.
+  enableEarlyExpiration: boolean;
   // FPL options
   fpl: FPL; // Name of the financial product library type your contract will use to calculate the payment at expiry.
   basePercentage: string; // The percentage of collateral per pair used as the floor.

@@ -101,9 +101,10 @@ export default async function launchLSP({
   shortSynthSymbol,
   collateralToken,
   customAncillaryData,
-  prepaidProposerReward,
+  proposerReward,
   optimisticOracleLivenessTime,
   optimisticOracleProposerBond,
+  enableEarlyExpiration,
   fpl,
   basePercentage,
   lowerBound,
@@ -154,9 +155,10 @@ export default async function launchLSP({
     /* bytes   */ customAncillaryData: utf8ToHex(
       parseCustomAncillaryData(customAncillaryData),
     ),
-    /* uint256 */ prepaidProposerReward: prepaidProposerReward?.length
-      ? toWei(prepaidProposerReward)
+    /* uint256 */ proposerReward: proposerReward?.length
+      ? toWei(proposerReward)
       : "0",
+    /* bool    */ enableEarlyExpiration: enableEarlyExpiration ?? false,
     /* uint256 */ optimisticOracleLivenessTime: optimisticOracleLivenessTime
       ? optimisticOracleLivenessTime.toString()
       : "7200",

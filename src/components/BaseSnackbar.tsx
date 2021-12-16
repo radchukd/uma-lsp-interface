@@ -14,6 +14,8 @@ import styled from "@mui/material/styles/styled";
 import useTheme from "@mui/material/styles/useTheme";
 import Typography from "@mui/material/Typography";
 
+import copy from "../helpers/copy";
+
 const StyledContent = styled(SnackbarContent)(({ theme }) => ({
   [theme.breakpoints.up("sm")]: {
     minWidth: "344px !important",
@@ -47,34 +49,7 @@ const BaseSnackbar = React.forwardRef<HTMLDivElement, IBaseSnackbar>(
     }, [key, closeSnackbar]);
 
     const handleCopying = async () => {
-      if (!details?.length) return;
-
-      if (!navigator.clipboard) {
-        fallbackCopyTextToClipboard();
-        return;
-      }
-
-      await navigator.clipboard.writeText(details);
-    };
-
-    const fallbackCopyTextToClipboard = () => {
-      if (!details?.length) return;
-
-      const textArea = document.createElement("textarea");
-      textArea.value = details;
-
-      // Avoid scrolling to bottom
-      textArea.style.top = "0";
-      textArea.style.left = "0";
-      textArea.style.position = "fixed";
-
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      document.execCommand("copy");
-
-      document.body.removeChild(textArea);
+      if (details?.length) await copy(details);
     };
 
     const bgColor = () => {

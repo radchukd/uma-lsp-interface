@@ -76,6 +76,11 @@
             "type": "bytes32"
           },
           {
+            "internalType": "bool",
+            "name": "enableEarlyExpiration",
+            "type": "bool"
+          },
+          {
             "internalType": "string",
             "name": "longSynthName",
             "type": "string"
@@ -112,7 +117,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "prepaidProposerReward",
+            "name": "proposerReward",
             "type": "uint256"
           },
           {

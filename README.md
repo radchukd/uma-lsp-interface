@@ -3,7 +3,6 @@
 ## Description
 
 - This app helps you deploy [UMA LSP tokens](https://docs.umaproject.org/synthetic-tokens/long-short-pair) using [Superfluid's](https://docs.superfluid.finance/superfluid/protocol-tutorials/super-tokens) supertokens.
-- Supported LSP tokens: [Range](https://docs.umaproject.org/range-tokens/summary), [Success](https://docs.umaproject.org/success-tokens/summary).
 - Supported Networks: Mainnet, Kovan, Polygon, Mumbai.
 - Selection of collateral tokens is supported only for Mainnet and Polygon.
 - Distribution is not supported on Mainnet.
@@ -25,6 +24,8 @@
 
 Example parameters:
 
+Mandatory LSP Parameters:
+
 - Pair Name = UMA $4-12 Range Token Pair August 2021
 - Expiration Timestamp = 5 Nov 2022
 - Collateral Per Pair = 0.25
@@ -35,13 +36,26 @@ Example parameters:
 - Short Synth Symbol = rtUMA-0821s
 - Collateral Token = 0x489Bf230d4Ab5c2083556E394a28276C22c3B580 (UMA)
 - FPL = RangeBond
-- Custom Ancillary Data = "" (Empty)
-- Prepaid Proposer Reward = "" (Empty)
+
+Optional LSP Parameters:
+
+- Proposer Reward = "" (Empty)
 - Optimistic Oracle Liveness Time = "" (Empty)
 - Optimistic Oracle Proposer Bond = "" (Empty)
+- Enable Early Expiration = "" (empty)
+
+Mandatory FPL Parameters:
+
 - Lower Bound = 4
 - Upper Bound = 12
-- Gas Price = 1
+
+Optional Ancillary Data Parameters
+
+- Custom Ancillary Data = "" (Empty) / [example params](https://docs.umaproject.org/kpi-options/kpi-price-identifier) for KPI options
+
+Gas Price:
+
+- 1 for Kovan network
 
 ## Distribute LSP
 
