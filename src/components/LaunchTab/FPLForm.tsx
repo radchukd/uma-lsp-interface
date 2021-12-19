@@ -222,7 +222,14 @@ const FPLForm: React.FC<IFPLForm> = ({
     const url = new URL(`${window.location.href}`);
 
     Object.entries(launchOptions).forEach(([key, value]) => {
-      url.searchParams.set(key, value ? value.toString() : "");
+      if (!value) return;
+
+      url.searchParams.set(
+        key,
+        key === "expirationTimestamp"
+          ? ((value as Date).getTime() / 1000).toString()
+          : value.toString(),
+      );
     });
 
     copy(url.toString());

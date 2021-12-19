@@ -2,7 +2,7 @@ export const chains = [
   { id: 1, name: "Mainnet" },
   { id: 42, name: "Kovan" },
   { id: 137, name: "Matic" },
-  { id: 80001, name: "Mumbai" },
+  /* { id: 80001, name: "Mumbai" }, */
 ];
 
 // https://docs.umaproject.org/uma-tokenholders/approved-price-identifiers

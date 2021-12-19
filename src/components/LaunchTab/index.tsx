@@ -56,7 +56,7 @@ const LaunchTab: React.FC = () => {
 
     params.forEach((value, key) => {
       if (key === "expirationTimestamp") {
-        linkFormOptions[key] = new Date(value);
+        linkFormOptions[key] = new Date(parseInt(value) * 1000);
       } else if (key === "enableEarlyExpiration") {
         linkFormOptions[key] = value === "true";
       } else {

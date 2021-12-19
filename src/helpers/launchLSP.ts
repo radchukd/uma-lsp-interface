@@ -7,6 +7,7 @@ import {
   getCoveredCallLongShortPairFinancialProductLibraryAddress,
   getLinearLongShortPairFinancialProductLibraryAbi,
   getLinearLongShortPairFinancialProductLibraryAddress,
+  getLongShortPairCreatorAbi,
   getLongShortPairCreatorAddress,
   getRangeBondLongShortPairFinancialProductLibraryAbi,
   getRangeBondLongShortPairFinancialProductLibraryAddress,
@@ -18,7 +19,6 @@ import {
   getSuccessTokenLongShortPairFinancialProductLibraryAddress,
 } from "@uma/contracts-frontend";
 
-import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
 import { FPL, FPLParams, LaunchOptions } from "./models";
 import { parseCustomAncillaryData } from "./utils";
 
@@ -186,7 +186,7 @@ export default async function launchLSP({
   );
 
   const lspCreator = new web3.eth.Contract(
-    lspCreatorABI as any,
+    getLongShortPairCreatorAbi(),
     getLongShortPairCreatorAddress(chainId),
     contractParams,
   );
