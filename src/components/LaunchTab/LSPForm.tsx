@@ -205,19 +205,6 @@ const LSPForm: React.FC<ILSPForm> = ({
       return;
     }
 
-    // Check if entered manually on test networks
-    const collateralToken = data.collateralToken.startsWith("0x")
-      ? data.collateralToken
-      : collateralTokens
-          .find((token) => token.currency === data.collateralToken)
-          ?.addresses.find(
-            (address) =>
-              (chainId === 1 && address.includes("etherscan")) ||
-              (chainId === 137 && address.includes("polygonscan")),
-          )
-          ?.split("/")
-          ?.pop()!;
-
     // reset if switches to non-KPI option
     const customAncillaryData = !data.fpl.includes("KPI Option")
       ? ""
@@ -225,7 +212,6 @@ const LSPForm: React.FC<ILSPForm> = ({
 
     saveFormOptions({
       ...data,
-      collateralToken,
       customAncillaryData,
     });
 

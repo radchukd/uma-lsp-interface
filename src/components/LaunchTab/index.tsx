@@ -52,7 +52,7 @@ const LaunchTab: React.FC = () => {
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const linkFormOptions: Record<string, any> = {};
+    const linkFormOptions: Record<string, any> = { ...formOptions };
 
     params.forEach((value, key) => {
       if (key === "expirationTimestamp") {
@@ -66,6 +66,7 @@ const LaunchTab: React.FC = () => {
 
     setFormOptions(linkFormOptions as LaunchFormOptions);
     setInitializing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isInitializing) return <></>;
