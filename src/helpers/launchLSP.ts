@@ -7,6 +7,7 @@ import {
   getCoveredCallLongShortPairFinancialProductLibraryAddress,
   getLinearLongShortPairFinancialProductLibraryAbi,
   getLinearLongShortPairFinancialProductLibraryAddress,
+  getLongShortPairCreatorAbi,
   getLongShortPairCreatorAddress,
   getRangeBondLongShortPairFinancialProductLibraryAbi,
   getRangeBondLongShortPairFinancialProductLibraryAddress,
@@ -18,7 +19,7 @@ import {
   getSuccessTokenLongShortPairFinancialProductLibraryAddress,
 } from "@uma/contracts-frontend";
 
-import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
+import { collateralTokens } from "./constants";
 import { FPL, FPLParams, LaunchOptions } from "./models";
 import { parseCustomAncillaryData } from "./utils";
 
@@ -101,9 +102,10 @@ export default async function launchLSP({
   shortSynthSymbol,
   collateralToken,
   customAncillaryData,
-  prepaidProposerReward,
+  proposerReward,
   optimisticOracleLivenessTime,
   optimisticOracleProposerBond,
+  enableEarlyExpiration,
   fpl,
   basePercentage,
   lowerBound,
@@ -127,6 +129,19 @@ export default async function launchLSP({
             .call()
         )[0]) || "0";
 
+  // Check if entered manually on test networks
+  const collateral = collateralToken.startsWith("0x")
+    ? collateralToken
+    : collateralTokens
+        .find((token) => token.currency === collateralToken)
+        ?.addresses.find(
+          (address) =>
+            (chainId === 1 && address.includes("etherscan")) ||
+            (chainId === 137 && address.includes("polygonscan")),
+        )
+        ?.split("/")
+        ?.pop()!;
+
   const fplParams = getFPLParams(
     fpl,
     basePercentage,
@@ -149,14 +164,15 @@ export default async function launchLSP({
     /* string  */ longSynthSymbol,
     /* string  */ shortSynthName,
     /* string  */ shortSynthSymbol,
-    /* address */ collateralToken,
+    /* address */ collateralToken: collateral,
     /* address */ financialProductLibrary: fplParams.address,
     /* bytes   */ customAncillaryData: utf8ToHex(
       parseCustomAncillaryData(customAncillaryData),
     ),
-    /* uint256 */ prepaidProposerReward: prepaidProposerReward?.length
-      ? toWei(prepaidProposerReward)
+    /* uint256 */ proposerReward: proposerReward?.length
+      ? toWei(proposerReward)
       : "0",
+    /* bool    */ enableEarlyExpiration: enableEarlyExpiration ?? false,
     /* uint256 */ optimisticOracleLivenessTime: optimisticOracleLivenessTime
       ? optimisticOracleLivenessTime.toString()
       : "7200",
@@ -184,8 +200,10 @@ export default async function launchLSP({
   );
 
   const lspCreator = new web3.eth.Contract(
-    lspCreatorABI as any,
-    getLongShortPairCreatorAddress(chainId),
+    getLongShortPairCreatorAbi(),
+    chainId === 80001
+      ? "0xed3D3F90b8426E683b8d361ac7dDBbEa1a8A7Da8"
+      : getLongShortPairCreatorAddress(chainId),
     contractParams,
   );
 

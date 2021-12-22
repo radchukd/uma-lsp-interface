@@ -7,6 +7,7 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
+import copy from "../../helpers/copy";
 import launchLSP from "../../helpers/launchLSP";
 import { FormField } from "../../helpers/models";
 import BaseInput from "../BaseInput";
@@ -215,6 +216,25 @@ const FPLForm: React.FC<IFPLForm> = ({
     handleBack();
   };
 
+  const onCopyClick = () => {
+    const launchOptions = saveFormOptions(prepareFormOptions(getValues()));
+
+    const url = new URL(`${window.location.href}`);
+
+    Object.entries(launchOptions).forEach(([key, value]) => {
+      if (!value) return;
+
+      url.searchParams.set(
+        key,
+        key === "expirationTimestamp"
+          ? ((value as Date).getTime() / 1000).toString()
+          : value.toString(),
+      );
+    });
+
+    copy(url.toString());
+  };
+
   const onSubmit: SubmitHandler<FPLFormOptions> = async (data, event) => {
     const submitEvent = (
       (event?.nativeEvent as SubmitEvent).submitter?.attributes as NamedNodeMap
@@ -277,7 +297,7 @@ const FPLForm: React.FC<IFPLForm> = ({
 
   const renderField = (fplField: FormField<FPLFormOptions>) => {
     return (
-      <Grid key={fplField.name} item xs={12} md={6}>
+      <Grid key={fplField.name} item xs={12} sm={6}>
         <Controller
           name={fplField.name as never}
           control={control}
@@ -343,8 +363,16 @@ const FPLForm: React.FC<IFPLForm> = ({
           </Grid>
           {renderField(gasPriceField)}
           <Grid item xs={12} container alignItems="center">
-            <Button type="button" onClick={onBackClick} variant="contained">
+            <Button
+              type="button"
+              onClick={onBackClick}
+              variant="contained"
+              sx={{ mr: 2 }}
+            >
               Back
+            </Button>
+            <Button type="button" onClick={onCopyClick} variant="contained">
+              Copy link
             </Button>
           </Grid>
           <Grid item xs={12} container justifyContent="flex-end">

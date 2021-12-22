@@ -3,6 +3,7 @@ import { ControllerRenderProps } from "react-hook-form";
 
 import InfoIcon from "@mui/icons-material/Info";
 import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -24,6 +25,8 @@ const BaseInput: React.FC<IBaseInput> = ({
   error,
   fullWidth = true,
 }) => {
+  const [isTooltipOpen, setTooltipOpen] = React.useState(false);
+
   return (
     <React.Fragment>
       <Box display="flex" alignItems="flex-end">
@@ -49,8 +52,17 @@ const BaseInput: React.FC<IBaseInput> = ({
           {...hookFormField}
         />
         {customField.description && (
-          <Tooltip title={customField.description} placement="top">
-            <InfoIcon />
+          <Tooltip
+            title={customField.description}
+            open={isTooltipOpen}
+            onOpen={() => setTooltipOpen(true)}
+            onClose={() => setTooltipOpen(false)}
+            leaveDelay={500}
+            placement="bottom-end"
+          >
+            <IconButton onClick={() => setTooltipOpen(!isTooltipOpen)}>
+              <InfoIcon />
+            </IconButton>
           </Tooltip>
         )}
       </Box>

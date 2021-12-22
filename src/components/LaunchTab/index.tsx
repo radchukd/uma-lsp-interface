@@ -18,16 +18,17 @@ const LaunchTab: React.FC = () => {
     shortSynthSymbol: "",
     collateralToken: "",
     customAncillaryData: "",
-    prepaidProposerReward: "",
+    proposerReward: "",
     optimisticOracleLivenessTime: "",
     optimisticOracleProposerBond: "",
+    enableEarlyExpiration: false,
     fpl: "" as any,
     basePercentage: "",
     lowerBound: "",
     upperBound: "",
     gasPrice: "",
   });
-
+  const [isInitializing, setInitializing] = React.useState(true);
   const [activeStep, setActiveStep] = React.useState<number>(0);
 
   const handleNext = () => {
@@ -48,6 +49,27 @@ const LaunchTab: React.FC = () => {
     setFormOptions(opts);
     return opts;
   };
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const linkFormOptions: Record<string, any> = { ...formOptions };
+
+    params.forEach((value, key) => {
+      if (key === "expirationTimestamp") {
+        linkFormOptions[key] = new Date(parseInt(value) * 1000);
+      } else if (key === "enableEarlyExpiration") {
+        linkFormOptions[key] = value === "true";
+      } else {
+        linkFormOptions[key] = value;
+      }
+    });
+
+    setFormOptions(linkFormOptions as LaunchFormOptions);
+    setInitializing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isInitializing) return <></>;
 
   return (
     <React.Fragment>

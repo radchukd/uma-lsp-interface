@@ -1,6 +1,8 @@
-import { getLongShortPairCreatorAddress } from "@uma/contracts-frontend";
+import {
+  getLongShortPairCreatorAbi,
+  getLongShortPairCreatorAddress,
+} from "@uma/contracts-frontend";
 import Web3 from "web3";
-import lspCreatorABI from "../ABIs/LongShortPairCreatorABI.json";
 import { CreatedLSP } from "./models";
 
 export default async function getCreatedLSPs(
@@ -10,7 +12,7 @@ export default async function getCreatedLSPs(
   const chainId = await web3.eth.net.getId();
 
   const lspCreator = new web3.eth.Contract(
-    lspCreatorABI as any,
+    getLongShortPairCreatorAbi(),
     getLongShortPairCreatorAddress(chainId),
   );
 

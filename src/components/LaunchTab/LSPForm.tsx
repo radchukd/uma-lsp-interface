@@ -2,15 +2,20 @@ import { endOfToday, isAfter } from "date-fns";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
+import InfoIcon from "@mui/icons-material/Info";
 import DateTimePicker from "@mui/lab/DateTimePicker";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
 import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import FormHelperText from "@mui/material/FormHelperText";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import { AppContext } from "../../contexts/AppContext";
@@ -30,9 +35,10 @@ export type LSPFormOptions = {
   shortSynthName: string;
   shortSynthSymbol: string;
   collateralToken: string;
-  prepaidProposerReward: string;
+  proposerReward: string;
   optimisticOracleLivenessTime: string;
   optimisticOracleProposerBond: string;
+  enableEarlyExpiration: boolean;
   fpl: FPL;
 };
 
@@ -132,7 +138,7 @@ const requiredLspFields: Array<FormField<LSPFormOptions>> = [
 
 const optionalLspFields: Array<FormField<LSPFormOptions>> = [
   {
-    name: "prepaidProposerReward",
+    name: "proposerReward",
     description:
       "Proposal reward to be forwarded to the created contract to be used to incentivize price proposals.",
     type: "number",
@@ -161,6 +167,14 @@ const optionalLspFields: Array<FormField<LSPFormOptions>> = [
       min: 0,
     },
   },
+  {
+    name: "enableEarlyExpiration",
+    description: "Enable early expiration of the LSP",
+    type: "boolean",
+    rules: {
+      required: false,
+    },
+  },
 ];
 
 interface ILSPForm {
@@ -174,6 +188,7 @@ const LSPForm: React.FC<ILSPForm> = ({
   saveFormOptions,
   handleNext,
 }) => {
+  const [isTooltipOpen, setTooltipOpen] = React.useState(false);
   const { chainId } = React.useContext(AppContext);
   const { control, handleSubmit, setError } = useForm<LSPFormOptions>({
     defaultValues: formOptions as LSPFormOptions,
@@ -190,19 +205,6 @@ const LSPForm: React.FC<ILSPForm> = ({
       return;
     }
 
-    // Check if entered manually on test networks
-    const collateralToken = data.collateralToken.startsWith("0x")
-      ? data.collateralToken
-      : collateralTokens
-          .find((token) => token.currency === data.collateralToken)
-          ?.addresses.find(
-            (address) =>
-              (chainId === 1 && address.includes("etherscan")) ||
-              (chainId === 137 && address.includes("polygonscan")),
-          )
-          ?.split("/")
-          ?.pop()!;
-
     // reset if switches to non-KPI option
     const customAncillaryData = !data.fpl.includes("KPI Option")
       ? ""
@@ -210,7 +212,6 @@ const LSPForm: React.FC<ILSPForm> = ({
 
     saveFormOptions({
       ...data,
-      collateralToken,
       customAncillaryData,
     });
 
@@ -220,7 +221,7 @@ const LSPForm: React.FC<ILSPForm> = ({
   const renderField = (lspField: FormField<LSPFormOptions>) => {
     if (lspField.name === "expirationTimestamp") {
       return (
-        <Grid key={lspField.name} item xs={12} md={6}>
+        <Grid key={lspField.name} item xs={12} sm={6}>
           <Controller
             name={lspField.name as never}
             control={control}
@@ -271,7 +272,7 @@ const LSPForm: React.FC<ILSPForm> = ({
       }
 
       return (
-        <Grid key={lspField.name} item xs={12} md={6}>
+        <Grid key={lspField.name} item xs={12} sm={6}>
           <Controller
             name={lspField.name as never}
             control={control}
@@ -311,8 +312,52 @@ const LSPForm: React.FC<ILSPForm> = ({
       );
     }
 
+    if (lspField.name === "enableEarlyExpiration") {
+      return (
+        <Grid
+          key={lspField.name}
+          item
+          xs={12}
+          sm={6}
+          container
+          alignItems="flex-end"
+          justifyContent="space-between"
+        >
+          <FormControlLabel
+            control={
+              <Controller
+                name={lspField.name as never}
+                control={control}
+                rules={lspField.rules}
+                render={({ field, /* fieldState, */ formState }) => (
+                  <Checkbox
+                    checked={field.value}
+                    disabled={formState.isSubmitting}
+                    {...field}
+                  />
+                )}
+              />
+            }
+            label={camelToSentenceCase(lspField.name)}
+          />
+          <Tooltip
+            title={lspField.description ?? ""}
+            open={isTooltipOpen}
+            onOpen={() => setTooltipOpen(true)}
+            onClose={() => setTooltipOpen(false)}
+            leaveDelay={500}
+            placement="bottom-end"
+          >
+            <IconButton onClick={() => setTooltipOpen(!isTooltipOpen)}>
+              <InfoIcon />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+      );
+    }
+
     return (
-      <Grid key={lspField.name} item xs={12} md={6}>
+      <Grid key={lspField.name} item xs={12} sm={6}>
         <Controller
           name={lspField.name as never}
           control={control}

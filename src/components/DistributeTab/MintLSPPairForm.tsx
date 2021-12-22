@@ -159,7 +159,7 @@ const MintLSPPairForm: React.FC = () => {
                 mintField.options = createdLSPs.map((lsp) => lsp.longShortPair);
 
                 return (
-                  <Grid key={mintField.name} item xs={12} md={6}>
+                  <Grid key={mintField.name} item xs={12} sm={6}>
                     <Controller
                       name={mintField.name as never}
                       control={control}
@@ -200,7 +200,7 @@ const MintLSPPairForm: React.FC = () => {
               }
 
               return (
-                <Grid key={mintField.name} item xs={12} md={6}>
+                <Grid key={mintField.name} item xs={12} sm={6}>
                   <Controller
                     name={mintField.name as never}
                     control={control}
